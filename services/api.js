@@ -60,3 +60,33 @@ export async function deleteProduto(id) {
       return false;
     }
 }
+
+/**
+ * Envia as credenciais para o endpoint de autenticação da API.
+ * @param {string} email - O email do usuário.
+ * @param {string} senha - A senha do usuário.
+ * @returns {Promise<string|null>} O token de autenticação em caso de sucesso, ou null em caso de falha.
+ */
+export async function autenticar(email, senha) {
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, { // <-- Verifique se este é seu endpoint de login
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, senha }), // Envia email e senha no corpo da requisição
+    });
+
+    if (!response.ok) {
+      // Se a resposta for um erro (401, 404, etc.), lança um erro para o catch.
+      throw new Error('Falha na autenticação');
+    }
+
+    const data = await response.json();
+    return data.token; // Supondo que sua API retorna um objeto como { token: "..." }
+  
+  } catch (error) {
+    console.error("Erro na autenticação:", error);
+    return null; // Retorna null para indicar que o login falhou
+  }
+}
