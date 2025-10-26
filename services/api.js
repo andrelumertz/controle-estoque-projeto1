@@ -1,92 +1,105 @@
-const API_URL = 'http://localhost:5000/api/produtos'; 
+// 1. CARREGAR O AXIOS (pela CDN, como fizemos)
+// (Não há 'import' aqui, usamos a variável global 'axios')
 
-/**
- * Busca todos os produtos da API (Método GET).
- * @returns {Promise<Array>} Uma lista de produtos.
- */
-export async function getProdutos() {
-  try {
-    const response = await fetch(API_URL);
-    if (!response.ok) {
-      throw new Error('Erro ao buscar produtos da API.');
+// --- 2. CONFIGURAÇÃO PRINCIPAL ---
+const API_URL = 'https://localhost:7202/api';
+
+// --- 3. CRIAÇÃO DA INSTÂNCIA DO AXIOS ---
+const api = axios.create({
+  baseURL: API_URL
+});
+
+// --- 4. INTERCEPTOR DE REQUISIÇÃO (Adiciona o Token) ---
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return await response.json();
-  } catch (error) {
-    console.error('Falha em getProdutos:', error);
-    return []; // Retorna um array vazio em caso de erro para não quebrar a página.
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-}
+);
 
-/**
- * Adiciona um novo produto na API (Método POST).
- * @param {object} produto - O objeto do produto a ser criado.
- * @returns {Promise<object|null>} O produto criado ou null em caso de erro.
- */
-export async function addProduto(produto) {
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(produto),
-    });
-    if (!response.ok) {
-      throw new Error('Falha ao adicionar o produto.');
+// --- 5. INTERCEPTOR DE RESPOSTA (Trata erros) ---
+api.interceptors.response.use(
+  (response) => response, // Sucesso
+  (error) => { // Erro
+    const { response } = error;
+    if (response && (response.status === 401 || response.status === 403)) {
+      alert("A sua sessão expirou ou não tem permissão! Faça o login novamente.");
+      localStorage.removeItem('authToken');
+      window.location.href = '/login.html';
     }
-    return await response.json();
-  } catch (error) {
-    console.error('Falha em addProduto:', error);
-    return null;
+    const errorMessage = response?.data?.message || response?.data?.title || error.message;
+    return Promise.reject(new Error(errorMessage));
   }
-}
+);
+
+// --- 6. FUNÇÕES DA API (CORRIGIDAS PARA camelCase) ---
 
 /**
- * Deleta um produto da API (Método DELETE).
- * @param {number} id - O ID do produto a ser deletado.
- * @returns {Promise<boolean>} Retorna true se a exclusão for bem-sucedida, false caso contrário.
- */
-export async function deleteProduto(id) {
-    try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error('Falha ao deletar o produto.');
-      }
-      return true;
-    } catch (error) {
-      console.error('Falha em deleteProduto:', error);
-      return false;
-    }
-}
-
-/**
- * Envia as credenciais para o endpoint de autenticação da API.
- * @param {string} email - O email do usuário.
- * @param {string} senha - A senha do usuário.
- * @returns {Promise<string|null>} O token de autenticação em caso de sucesso, ou null em caso de falha.
+ * AUTENTICAÇÃO
  */
 export async function autenticar(email, senha) {
   try {
-    const response = await fetch(`${API_URL}/auth/login`, { // <-- Verifique se este é seu endpoint de login
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, senha }), // Envia email e senha no corpo da requisição
+    const response = await axios.post(`${API_URL}/Auth/login`, {
+      // CORRIGIDO: Enviando em camelCase
+      email: email, 
+      senha: senha
     });
 
-    if (!response.ok) {
-      // Se a resposta for um erro (401, 404, etc.), lança um erro para o catch.
-      throw new Error('Falha na autenticação');
+    // CORRIGIDO: Lendo a resposta em camelCase
+    const token = response.data.token; 
+    if (!token) {
+      throw new Error("Token não recebido da API.");
     }
+    
+    localStorage.setItem('authToken', token); // Salva o token
+    return token;
 
-    const data = await response.json();
-    return data.token; // Supondo que sua API retorna um objeto como { token: "..." }
-  
-  } catch (error) {
-    console.error("Erro na autenticação:", error);
-    return null; // Retorna null para indicar que o login falhou
+  } catch (err) {
+    const errorMessage = err.response?.data?.message || err.response?.data?.title || err.response?.data || "Email ou senha inválidos";
+    throw new Error(errorMessage);
   }
+}
+
+/**
+ * CRUD PRODUTOS
+ * (Estas funções recebem e enviam camelCase)
+ */
+export async function getProdutos() {
+  const response = await api.get('/Produtos'); // O endpoint no C# (Produtos) não afeta o JSON
+  return response.data; // A API retorna um array de objetos em camelCase
+}
+
+export async function getProduto(id) {
+  const response = await api.get(`/Produtos/${id}`);
+  return response.data; // A API retorna um objeto em camelCase
+}
+
+export async function addProduto(produto) {
+  // Recebe 'produto' em camelCase e envia-o
+  const response = await api.post('/Produtos', produto);
+  return response.data;
+}
+
+export async function updateProduto(id, produto) {
+  // Recebe 'produto' em camelCase e envia-o
+  await api.put(`/Produtos/${id}`, produto);
+}
+
+export async function deleteProduto(id) {
+  await api.delete(`/Produtos/${id}`);
+}
+
+/**
+ * MOVIMENTAÇÕES (SAÍDAS)
+ */
+export async function registrarSaida(saida) {
+  // Recebe 'saida' em camelCase e envia-o
+  const response = await api.post('/Saidas', saida); 
+  return response.data;
 }

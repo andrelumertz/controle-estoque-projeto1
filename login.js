@@ -1,38 +1,36 @@
-// 1. Importa a função de autenticação que acabamos de criar.
 import { autenticar } from './services/api.js';
 
-// 2. Pega as referências dos elementos do formulário no login.html
+// 1. Pega as referências dos elementos do formulário
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
 const senhaInput = document.getElementById('password');
+const submitButton = loginForm.querySelector('button[type="submit"]');
 
-// 3. Adiciona um "escutador" para o evento de "submit" do formulário
+// 2. Adiciona o "escutador" de envio
 loginForm.addEventListener('submit', async (event) => {
-  // Impede que a página recarregue, que é o comportamento padrão de um formulário
-  event.preventDefault(); 
+  event.preventDefault(); // Impede o recarregamento da página
 
-  // Pega os valores digitados pelo usuário
   const email = emailInput.value;
   const senha = senhaInput.value;
 
-  // Mostra um feedback visual (opcional, mas bom para o usuário)
-  alert('Enviando dados...');
+  submitButton.disabled = true;
+  submitButton.textContent = 'Entrando...';
 
-  // 4. Chama a função de autenticação, passando os dados do usuário
-  const token = await autenticar(email, senha);
-
-  // 5. Verifica a resposta
-  if (token) {
-    // Se o token foi recebido com sucesso...
-    alert('Login realizado com sucesso!');
+  try {
+    // 3. Tenta autenticar
+    await autenticar(email, senha);
     
-    // Salva o token no localStorage do navegador para ser usado depois
-    localStorage.setItem('authToken', token);
-
-    // Redireciona o usuário para a página do dashboard
+    // SUCESSO!
+    // A própria função 'autenticar' já salvou o token.
     window.location.href = '/dashboard.html';
-  } else {
-    // Se a autenticação falhou...
-    alert('Email ou senha inválidos. Tente novamente.');
+
+  } catch (error) {
+    // FALHA!
+    // O 'catch' agora recebe a mensagem de erro vinda do axios/back-end
+    console.error(error);
+    alert(error.message); // Mostra o erro (ex: "Email ou senha inválidos")
+    
+    submitButton.disabled = false;
+    submitButton.textContent = 'Entrar';
   }
 });
