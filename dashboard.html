@@ -15,14 +15,18 @@
                     transition-transform duration-300 ease-in-out">
             
             <div class="mb-8 px-4 py-2">
-                <img src="./assets/logo-empresa.png" alt="Logo da Empresa" class="w-full h-auto">
+                <img
+                    src="./assets/logo-empresa.png"
+                    alt="Logo da Empresa"
+                    class="w-full h-auto rounded-full object-cover"
+                    />
             </div>
 
             <nav class="flex-grow">
                 <ul>
                     <li><a href="#" class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i class="fa fa-home"></i> Início</a></li>
                     <li id="open-modal-btn" class="cursor-pointer"><a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i class="fa fa-plus-circle"></i> Cadastrar Produto</a></li>
-                    <li id="open-saida-modal-btn" class="cursor-pointer"><a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i class="fa fa-minus-circle"></i> Retirada</a></li>
+                    <!-- <li id="open-saida-modal-btn" class="cursor-pointer"><a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i class="fa fa-minus-circle"></i> Retirada</a></li> -->
                     <li><a href="#" class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white bg-purple-600 text-white"><i class="fa fa-chart-bar"></i> Produtos</a></li>
                 </ul>
             </nav>
@@ -61,6 +65,23 @@
                     <p class="text-gray-400">Total de Itens: <span id="total-itens" class="text-white font-bold">0</span></p>
                     <p class="text-gray-400">Valor Total do Estoque: <span id="valor-estoque" class="text-white font-bold">R$ 0,00</span></p>
                 </div>
+                
+                <!--buscador e o adicionar-->
+                <div class="flex justify-between items-center mb-4 gap-4">
+                    <div class="relative flex-grow">
+                        <div class="absolute left-0 pl-20 pointer-events-none" style="top: 9px;">
+                            <i class="fa fa-search text-gray-400" style="margin-left: 12px;"></i>
+                        </div>
+                        <input type="search" id="search-input" placeholder="Buscar por nome do produto..." class="w-full p-2 pl-10 bg-[#161625] border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600">
+                    </div>
+                    <button id="add-product-header-btn" class="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 whitespace-nowrap">
+                        <i class="fa fa-plus"></i>
+                        <span class="hidden sm:inline">Novo</span>
+                    </button>
+                </div>
+            
+            <table class="w-full text-left text-gray-400">
+
                 <!-- Tabela de produtos -->
                 <table class="w-full text-left text-gray-400">
                     <thead class="bg-[#1e1e2d] text-white">
@@ -75,6 +96,7 @@
                     </thead>
                     <tbody id="products-table-body"></tbody>
                 </table>
+                <!-- end tabela de produtos -->
             </main>
         </div>
     </div>
@@ -115,6 +137,7 @@
             </form>
         </div>
     </div>
+    <!-- end Modal de cadastro/edição de produto -->
 
     <!-- Modal de registro de saída -->
     <div id="saida-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
@@ -122,33 +145,79 @@
             <button id="close-saida-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
                 <i class="fa fa-times fa-lg"></i>
             </button>
-            <h2 class="text-2xl font-bold mb-6 text-center">Registrar Saída</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center">Registrar Saída de Estoque</h2>
             <form id="saida-form">
+                <input type="hidden" id="saida-product-id">
+
                 <div class="mb-4">
-                    <label for="saida-produto" class="block mb-2 text-sm text-gray-400">Produto</label>
-                    <select id="saida-produto" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
-                        <option value="">Selecione um produto</option>
-                    </select>
+                    <label class="block mb-2 text-sm text-gray-400">Produto</label>
+                    <p id="saida-product-name" class="text-lg text-white font-bold">-</p>
                 </div>
+                
                 <div class="mb-4">
-                    <label for="saida-quantidade" class="block mb-2 text-sm text-gray-400">Quantidade</label>
+                    <label for="saida-quantidade" class="block mb-2 text-sm text-gray-400">Quantidade a Retirar</label>
                     <input type="number" id="saida-quantidade" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required min="1">
                 </div>
+                
                 <div class="mb-4">
                     <label for="saida-motivo" class="block mb-2 text-sm text-gray-400">Motivo</label>
                     <select id="saida-motivo" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
                         <option value="Venda">Venda</option>
                         <option value="Perda">Perda</option>
+                        <option value="Ajuste de Inventário">Ajuste de Inventário</option>
                         <option value="Outros">Outros</option>
                     </select>
                 </div>
+
                 <div class="flex justify-end gap-4 mt-8">
                     <button type="button" id="cancel-saida-btn" class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700">Registrar</button>
+                    <button type="submit" class="px-4 py-2 bg-orange-600 rounded-md hover:bg-orange-700">Registrar Saída</button>
                 </div>
             </form>
         </div>
     </div>
+    <!-- end Modal de registro de saída -->
+
+
+    <!--Modal novo adicionar esqtoque-->
+    <div id="add-stock-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-lg text-white relative border border-gray-700">
+            <button id="close-add-stock-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fa fa-times fa-lg"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-center">Adicionar Estoque (Lançamento)</h2>
+            <form id="add-stock-form">
+                <input type="hidden" id="add-stock-product-id">
+                
+                <div class="mb-4">
+                    <label class="block mb-2 text-sm text-gray-400">Produto</label>
+                    <p class="text-lg text-white font-bold" id="add-stock-product-name">-</p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="add-stock-quantity" class="block mb-2 text-sm text-gray-400">Quantidade a Adicionar</label>
+                    <input type="number" id="add-stock-quantity" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required min="1">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="add-stock-motivo" class="block mb-2 text-sm text-gray-400">Motivo do Lançamento</label>
+                    <select id="add-stock-motivo" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                        <option value="Compra de Fornecedor">Compra de Fornecedor</option>
+                        <option value="Devolução de Cliente">Devolução de Cliente</option>
+                        <option value="Ajuste de Inventário">Ajuste de Inventário</option>
+                        <option value="Produção Interna">Produção Interna</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-8">
+                    <button type="button" id="cancel-add-stock-btn" class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700">Adicionar ao Estoque</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- end Modal novo adicionar esqtoque-->
 
     <!-- Modal de confirmação de exclusão -->
     <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
@@ -161,6 +230,7 @@
             </div>
         </div>
     </div>
+    <!-- end Modal de confirmação de exclusão -->
 
     <script src="script.js"></script>
 </body>
