@@ -4,10 +4,10 @@
 
 /* Estiliza APENAS a div da coluna esquerda */
 .banner {
-  background-image: url('./assets/Banner.svg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+    background-image: url('./assets/Banner.svg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 /* Opcional: Adiciona uma sombra sutil ao texto do banner para melhor leitura */
