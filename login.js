@@ -22,7 +22,7 @@ loginForm.addEventListener('submit', async (event) => {
     
     // SUCESSO!
     // A própria função 'autenticar' já salvou o token.
-    window.location.href = '/dashboard.html';
+    window.location.href = 'dashboard.html';
 
   } catch (error) {
     // FALHA!
