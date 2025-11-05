@@ -26,6 +26,7 @@ api.interceptors.response.use(
     if (response && (response.status === 401 || response.status === 403)) {
       alert("A sua sessão expirou ou não tem permissão! Faça o login novamente.");
       localStorage.removeItem('authToken');
+      localStorage.removeItem('userRole'); // Limpa a role também
       window.location.href = 'login.html';
     }
     const errorMessage = response?.data?.message || response?.data?.title || error.message;
@@ -37,6 +38,7 @@ api.interceptors.response.use(
 
 /**
  * AUTENTICAÇÃO
+ * (Usa 'axios' global de propósito, pois ainda não há token)
  */
 export async function autenticar(email, senha) {
   try {
@@ -49,7 +51,7 @@ export async function autenticar(email, senha) {
       throw new Error("Token não recebido da API.");
     }
     localStorage.setItem('authToken', token);
-    return token;
+    return token; // Retorna o token para o login.js
   } catch (err) {
     const errorMessage = err.response?.data?.message || err.response?.data?.title || err.response?.data || "Email ou senha inválidos";
     throw new Error(errorMessage);
@@ -58,6 +60,7 @@ export async function autenticar(email, senha) {
 
 /**
  * PRODUTOS
+ * (Usa a instância 'api' para enviar o token)
  */
 export async function getProdutos() {
   const response = await api.get('/Produtos');
@@ -79,7 +82,8 @@ export async function deleteProduto(id) {
 }
 
 /**
- * CLIENTES (CRUD Completo)
+ * CLIENTES
+ * (Usa a instância 'api' para enviar o token)
  */
 export async function getClientes() {
   const response = await api.get('/Clientes');
@@ -102,41 +106,43 @@ export async function deleteCliente(id) {
 
 /**
  * PEDIDOS
+ * (Usa a instância 'api' para enviar o token)
  */
 export async function getPedidos() {
-  const response = await api.get('/Pedidos');
+  const response = await api.get('/Pedidos'); // <--- AQUI ESTAVA O PROVÁVEL ERRO
   return response.data;
 }
 export async function addPedido(pedido) {
   const response = await api.post('/Pedidos', pedido);
   return response.data;
 }
-// (update/delete Pedido se necessário)
 
 /**
- * USUÁRIOS (CRUD Completo)
+ * USUÁRIOS
+ * (Usa a instância 'api' para enviar o token)
  */
 export async function getUsuarios() {
-  const response = await api.get('/Users');
+  const response = await api.get('/Usuarios');
   return response.data;
 }
 export async function getUsuario(id) {
-  const response = await api.get(`/Users/${id}`);
+  const response = await api.get(`/Usuarios/${id}`);
   return response.data;
 }
 export async function addUsuario(usuario) {
-  const response = await api.post('/Users', usuario);
+  const response = await api.post('/Usuarios', usuario);
   return response.data;
 }
 export async function updateUsuario(id, usuario) {
-  await api.put(`/Users/${id}`, usuario);
+  await api.put(`/Usuarios/${id}`, usuario);
 }
 export async function deleteUsuario(id) {
-  await api.delete(`/Users/${id}`);
+  await api.delete(`/Usuarios/${id}`);
 }
 
 /**
  * MOVIMENTAÇÕES (Saídas e Entradas)
+ * (Usa a instância 'api' para enviar o token)
  */
 export async function registrarSaida(saida) {
   const response = await api.post('/Saidas', saida);
@@ -149,6 +155,7 @@ export async function registrarEntrada(entrada) {
 
 /**
  * DASHBOARD (Visão Geral)
+ * (Usa a instância 'api' para enviar o token)
  */
 export async function getVisaoGeralEstoque() {
     const response = await api.get('/Relatorios/estoque/visaogeral'); 

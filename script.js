@@ -9,23 +9,24 @@ import {
 } from './services/api.js';
 
 // --- Variável Global de Role ---
-let userRole = 'user'; // Começa como 'user' por padrão
+let userRole = 'user'; 
 
 /**
- * (FUNÇÃO CORRIGIDA) Esconde os elementos de admin.
- * Esta função agora é chamada DEPOIS que a página carrega.
+ * Esconde todos os elementos de admin.
  */
 function applyUserRoleLimits() {
     // Se a role não for 'admin', esconde tudo
     if (userRole !== 'admin') {
-        const adminElements = document.querySelectorAll('[data-role="admin"]');
-        adminElements.forEach(el => {
-            el.classList.add('hidden');
-        });
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminElements = document.querySelectorAll('[data-role="admin"]');
+            adminElements.forEach(el => {
+                el.classList.add('hidden');
+            });
 
-        const adminHeaders = document.querySelectorAll('[data-role="admin-header"]');
-        adminHeaders.forEach(th => {
-            th.classList.add('hidden');
+            const adminHeaders = document.querySelectorAll('[data-role="admin-header"]');
+            adminHeaders.forEach(th => {
+                th.classList.add('hidden');
+            });
         });
     }
 }
@@ -40,11 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return; // Para a execução do script
     }
     
-    // Pega a role salva no login E CONVERTE PARA MINÚSCULAS (mais seguro)
     userRole = localStorage.getItem('userRole')?.toLowerCase() || 'user';
     
-    // 2. DEFINE TODOS OS ELEMENTOS
-    // --- Elementos Globais ---
+    // --- 2. DEFINE TODOS OS ELEMENTOS ---
+    // (O restante dos seus 'const' de elementos globais...)
     const menuButton = document.getElementById('menu-toggle-btn');
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('main-content');
@@ -52,8 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     const headerLogoutBtn = document.getElementById('header-logout-btn');
     const headerTitle = document.getElementById('header-title');
-
-    // --- Elementos de NAVEGAÇÃO ---
     const navInicioBtn = document.getElementById('nav-inicio-btn');
     const navProdutosBtn = document.getElementById('nav-produtos-btn');
     const navPedidosBtn = document.getElementById('nav-pedidos-btn'); 
@@ -64,30 +62,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const pedidosContent = document.getElementById('pedidos-content'); 
     const clientesContent = document.getElementById('clientes-content');
     const usuariosContent = document.getElementById('usuarios-content');
-
-    // --- Elementos da Tela de PRODUTOS ---
     const productsTableBody = document.getElementById('products-table-body');
     const searchProdutoInput = document.getElementById('search-produto-input');
     const totalItensSpan = document.getElementById('total-itens');
     const valorTotalSpan = document.getElementById('valor-total');
-    const addProductHeaderBtn = document.getElementById('add-product-header-btn'); 
-
-    // --- Elementos da Tela de CLIENTES ---
     const clientesTableBody = document.getElementById('clientes-table-body');
     const searchClienteInput = document.getElementById('search-cliente-input');
     const addClienteHeaderBtn = document.getElementById('add-cliente-header-btn'); 
-
-    // --- Elementos da Tela de USUÁRIOS ---
     const usuariosTableBody = document.getElementById('usuarios-table-body');
     const searchUsuarioInput = document.getElementById('search-usuario-input');
     const addUsuarioHeaderBtn = document.getElementById('add-usuario-header-btn'); 
-
-    // --- Elementos da Tela de PEDIDOS ---
     const pedidosTableBody = document.getElementById('pedidos-table-body');
     const searchPedidoInput = document.getElementById('search-pedido-input');
-
-    // --- Elementos do Modal de PRODUTO ---
     const productModal = document.getElementById('product-modal');
+    const addProductHeaderBtn = document.getElementById('add-product-header-btn'); 
     const closeProductModalBtn = document.getElementById('close-product-modal-btn');
     const cancelProductBtn = document.getElementById('cancel-product-btn');
     const productForm = document.getElementById('product-form');
@@ -97,8 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const productQuantidadeInput = document.getElementById('product-quantidade');
     const productPrecoInput = document.getElementById('product-preco');
     const productTipoInput = document.getElementById('product-tipo');
-
-    // --- Elementos do Modal de CLIENTE ---
     const clienteModal = document.getElementById('cliente-modal');
     const closeClienteModalBtn = document.getElementById('close-cliente-modal-btn');
     const cancelClienteBtn = document.getElementById('cancel-cliente-btn');
@@ -109,8 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clienteCnpjInput = document.getElementById('cliente-cnpj');
     const clienteEmailInput = document.getElementById('cliente-email');
     const clienteEnderecoInput = document.getElementById('cliente-endereco');
-
-    // --- Elementos do Modal de USUÁRIO ---
     const usuarioModal = document.getElementById('usuario-modal');
     const closeUsuarioModalBtn = document.getElementById('close-usuario-modal-btn');
     const cancelUsuarioBtn = document.getElementById('cancel-usuario-btn');
@@ -121,8 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const usuarioEmailInput = document.getElementById('usuario-email');
     const usuarioSenhaInput = document.getElementById('usuario-senha');
     const usuarioRoleInput = document.getElementById('usuario-role');
-
-    // --- Elementos do Modal de PEDIDO ---
     const pedidoModal = document.getElementById('pedido-modal');
     const openPedidoModalBtn = document.getElementById('open-pedido-modal-btn');
     const closePedidoModalBtn = document.getElementById('close-pedido-modal-btn');
@@ -131,8 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pedidoProdutoSelect = document.getElementById('pedido-produto');
     const pedidoClienteSelect = document.getElementById('pedido-cliente');
     const pedidoQuantidadeInput = document.getElementById('pedido-quantidade');
-
-    // --- Elementos do Modal de Exclusão (GENÉRICO) ---
     const deleteModal = document.getElementById('delete-confirm-modal');
     const deleteConfirmMessage = document.getElementById('delete-confirm-message');
     const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
@@ -147,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let todosOsPedidos = [];
 
     // --- 3. APLICA LIMITES DE ROLE ---
-    // (Agora que os elementos existem, podemos escondê-los)
     applyUserRoleLimits();
     
     // --- 4. ADICIONA EVENT LISTENERS ---
@@ -215,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarTela(usuariosContent, 'Lista de Usuários');
         setAtivo(navUsuariosBtn);
     });
-
     // --- Fim da Lógica de Navegação ---
 
 
@@ -265,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         productsTableBody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-gray-500">Carregando...</td></tr>`;
         try {
             const produtos = await getProdutos();
-            todosOsProdutos = produtos;
+            todosOsProdutos = produtos; // Armazena a lista completa com a quantidade
             renderizarTabelaProdutos(todosOsProdutos);
             pedidoProdutoSelect.innerHTML = '<option value="">Selecione um produto</option>';
             todosOsProdutos.forEach(p => {
@@ -473,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==================================================================
-    // == LÓGICA DOS MODAIS (AGORA COM LISTENERS CORRETOS)
+    // == LÓGICA DOS MODAIS
     // ==================================================================
 
     // --- Modal de PRODUTO (Adicionar/Editar) ---
@@ -683,12 +661,26 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = false; btn.textContent = 'Gerar Pedido';
             return;
         }
-
+        
         const pedido = {
             produtoId: parseInt(produtoIdStr),
             clienteId: parseInt(clienteIdStr),
             quantidadeProduto: quantidadeNum
         };
+
+        // ==========================================================
+        // == MUDANÇA: Verificação de estoque no frontend
+        // ==========================================================
+        const produtoSelecionado = todosOsProdutos.find(p => p.id === pedido.produtoId);
+        
+        if (produtoSelecionado && produtoSelecionado.quantidade < pedido.quantidadeProduto) {
+            alert(`Falha ao gerar pedido: Estoque insuficiente para "${produtoSelecionado.nome}".\n\nDisponível: ${produtoSelecionado.quantidade}\nSolicitado: ${pedido.quantidadeProduto}`);
+            
+            btn.disabled = false;
+            btn.textContent = 'Gerar Pedido';
+            return; // Para a submissão
+        }
+        // ==========================================================
 
         try {
             await addPedido(pedido);
@@ -697,6 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await carregarProdutosTabela(); 
             await buscarVisaoGeralEstoque(); 
         } catch (error) {
+            // O erro 400 (como o de estoque) do backend ainda será pego aqui
             alert(`Falha ao gerar pedido: ${error.message}`);
         } finally {
             btn.disabled = false; btn.textContent = 'Gerar Pedido';
