@@ -1,12 +1,16 @@
 // --- 1. CONFIGURAÇÃO PRINCIPAL ---
+// Define a URL base da API no backend.
 const API_URL = 'https://localhost:7202/api';
 
 // --- 2. CRIAÇÃO DA INSTÂNCIA DO AXIOS ---
+// Cria uma instância do Axios que usará a URL base e os interceptors.
 const api = axios.create({
   baseURL: API_URL
 });
 
-// --- 3. INTERCEPTOR DE REQUISIÇÃO (Adiciona o Token) ---
+// --- 3. INTERCEPTOR DE REQUISIÇÃO ---
+// Adiciona o token de autenticação (Bearer Token) em TODOS os headers
+// das requisições feitas pela instância 'api'.
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
@@ -18,10 +22,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// --- 4. INTERCEPTOR DE RESPOSTA (Trata erros) ---
+// --- 4. INTERCEPTOR DE RESPOSTA ---
+// Trata erros globais de resposta da API.
+// Especialmente o erro 401 (Não Autorizado), que desloga o usuário.
 api.interceptors.response.use(
-  (response) => response, // Sucesso
-  (error) => { // Erro
+  (response) => response, // Sucesso: apenas repassa a resposta
+  (error) => { // Erro:
     const { response } = error;
     if (response && (response.status === 401 || response.status === 403)) {
       alert("A sua sessão expirou ou não tem permissão! Faça o login novamente.");
@@ -29,15 +35,16 @@ api.interceptors.response.use(
       localStorage.removeItem('userRole'); // Limpa a role também
       window.location.href = 'login.html';
     }
+    // Repassa a mensagem de erro vinda do backend
     const errorMessage = response?.data?.message || response?.data?.title || error.message;
     return Promise.reject(new Error(errorMessage));
   }
 );
 
-// --- 5. FUNÇÕES DA API (completas) ---
+// --- 5. FUNÇÕES DA API (Endpoints) ---
 
 /**
- * AUTENTICAÇÃO
+ * Endpoint de AUTENTICAÇÃO
  * (Usa 'axios' global de propósito, pois ainda não há token)
  */
 export async function autenticar(email, senha) {
@@ -59,8 +66,7 @@ export async function autenticar(email, senha) {
 }
 
 /**
- * PRODUTOS
- * (Usa a instância 'api' para enviar o token)
+ * Endpoints de PRODUTOS
  */
 export async function getProdutos() {
   const response = await api.get('/Produtos');
@@ -82,8 +88,7 @@ export async function deleteProduto(id) {
 }
 
 /**
- * CLIENTES
- * (Usa a instância 'api' para enviar o token)
+ * Endpoints de CLIENTES
  */
 export async function getClientes() {
   const response = await api.get('/Clientes');
@@ -105,11 +110,10 @@ export async function deleteCliente(id) {
 }
 
 /**
- * PEDIDOS
- * (Usa a instância 'api' para enviar o token)
+ * Endpoints de PEDIDOS
  */
 export async function getPedidos() {
-  const response = await api.get('/Pedidos'); // <--- AQUI ESTAVA O PROVÁVEL ERRO
+  const response = await api.get('/Pedidos');
   return response.data;
 }
 export async function addPedido(pedido) {
@@ -118,31 +122,30 @@ export async function addPedido(pedido) {
 }
 
 /**
- * USUÁRIOS
- * (Usa a instância 'api' para enviar o token)
+ * Endpoints de USUÁRIOS
+ * (Atenção: A rota aqui é '/Users', como no seu arquivo)
  */
 export async function getUsuarios() {
-  const response = await api.get('/Usuarios');
+  const response = await api.get('/Users');
   return response.data;
 }
 export async function getUsuario(id) {
-  const response = await api.get(`/Usuarios/${id}`);
+  const response = await api.get(`/Users/${id}`);
   return response.data;
 }
 export async function addUsuario(usuario) {
-  const response = await api.post('/Usuarios', usuario);
+  const response = await api.post('/Users', usuario);
   return response.data;
 }
 export async function updateUsuario(id, usuario) {
-  await api.put(`/Usuarios/${id}`, usuario);
+  await api.put(`/Users/${id}`, usuario);
 }
 export async function deleteUsuario(id) {
-  await api.delete(`/Usuarios/${id}`);
+  await api.delete(`/Users/${id}`);
 }
 
 /**
- * MOVIMENTAÇÕES (Saídas e Entradas)
- * (Usa a instância 'api' para enviar o token)
+ * Endpoints de MOVIMENTAÇÕES (Ex: Saídas/Entradas futuras)
  */
 export async function registrarSaida(saida) {
   const response = await api.post('/Saidas', saida);
@@ -154,8 +157,7 @@ export async function registrarEntrada(entrada) {
 }
 
 /**
- * DASHBOARD (Visão Geral)
- * (Usa a instância 'api' para enviar o token)
+ * Endpoint de DASHBOARD (Visão Geral)
  */
 export async function getVisaoGeralEstoque() {
     const response = await api.get('/Relatorios/estoque/visaogeral'); 
