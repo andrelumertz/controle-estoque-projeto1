@@ -1,16 +1,12 @@
 // --- 1. CONFIGURAÇÃO PRINCIPAL ---
-// Define a URL base da API no backend.
 const API_URL = 'https://localhost:7202/api';
 
 // --- 2. CRIAÇÃO DA INSTÂNCIA DO AXIOS ---
-// Cria uma instância do Axios que usará a URL base e os interceptors.
 const api = axios.create({
   baseURL: API_URL
 });
 
-// --- 3. INTERCEPTOR DE REQUISIÇÃO ---
-// Adiciona o token de autenticação (Bearer Token) em TODOS os headers
-// das requisições feitas pela instância 'api'.
+// --- 3. INTERCEPTOR DE REQUISIÇÃO (Adiciona o Token) ---
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
@@ -22,12 +18,10 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// --- 4. INTERCEPTOR DE RESPOSTA ---
-// Trata erros globais de resposta da API.
-// Especialmente o erro 401 (Não Autorizado), que desloga o usuário.
+// --- 4. INTERCEPTOR DE RESPOSTA (Trata erros) ---
 api.interceptors.response.use(
-  (response) => response, // Sucesso: apenas repassa a resposta
-  (error) => { // Erro:
+  (response) => response, // Sucesso
+  (error) => { // Erro
     const { response } = error;
     if (response && (response.status === 401 || response.status === 403)) {
       alert("A sua sessão expirou ou não tem permissão! Faça o login novamente.");
@@ -35,17 +29,15 @@ api.interceptors.response.use(
       localStorage.removeItem('userRole'); // Limpa a role também
       window.location.href = 'login.html';
     }
-    // Repassa a mensagem de erro vinda do backend
     const errorMessage = response?.data?.message || response?.data?.title || error.message;
     return Promise.reject(new Error(errorMessage));
   }
 );
 
-// --- 5. FUNÇÕES DA API (Endpoints) ---
+// --- 5. FUNÇÕES DA API (completas) ---
 
 /**
- * Endpoint de AUTENTICAÇÃO
- * (Usa 'axios' global de propósito, pois ainda não há token)
+ * AUTENTICAÇÃO
  */
 export async function autenticar(email, senha) {
   try {
@@ -66,7 +58,7 @@ export async function autenticar(email, senha) {
 }
 
 /**
- * Endpoints de PRODUTOS
+ * PRODUTOS
  */
 export async function getProdutos() {
   const response = await api.get('/Produtos');
@@ -88,7 +80,7 @@ export async function deleteProduto(id) {
 }
 
 /**
- * Endpoints de CLIENTES
+ * CLIENTES
  */
 export async function getClientes() {
   const response = await api.get('/Clientes');
@@ -110,7 +102,29 @@ export async function deleteCliente(id) {
 }
 
 /**
- * Endpoints de PEDIDOS
+ * FORNECEDORES
+ */
+export async function getFornecedores() {
+  const response = await api.get('/Fornecedores');
+  return response.data;
+}
+export async function getFornecedor(id) {
+  const response = await api.get(`/Fornecedores/${id}`);
+  return response.data;
+}
+export async function addFornecedor(fornecedor) {
+  const response = await api.post('/Fornecedores', fornecedor);
+  return response.data;
+}
+export async function updateFornecedor(id, fornecedor) {
+  await api.put(`/Fornecedores/${id}`, fornecedor);
+}
+export async function deleteFornecedor(id) {
+  await api.delete(`/Fornecedores/${id}`);
+}
+
+/**
+ * PEDIDOS (Saída de Estoque)
  */
 export async function getPedidos() {
   const response = await api.get('/Pedidos');
@@ -122,8 +136,38 @@ export async function addPedido(pedido) {
 }
 
 /**
- * Endpoints de USUÁRIOS
- * (Atenção: A rota aqui é '/Users', como no seu arquivo)
+ * NOTA FISCAL COMPRA (Entrada de Estoque)
+ */
+export async function getNotasFiscais() {
+  const response = await api.get('/NotaFiscalCompra');
+  return response.data;
+}
+export async function getNotaFiscal(id) {
+  const response = await api.get(`/NotaFiscalCompra/${id}`);
+  return response.data;
+}
+export async function addNotaFiscalManual(notaFiscal) {
+  const response = await api.post('/NotaFiscalCompra', notaFiscal);
+  return response.data;
+}
+export async function updateNotaFiscal(id, notaFiscal) {
+  await api.put(`/NotaFiscalCompra/${id}`, notaFiscal);
+}
+export async function deleteNotaFiscal(id) {
+  await api.delete(`/NotaFiscalCompra/${id}`);
+}
+export async function addNotaFiscalXml(formData) {
+  // (Endpoint 'UploadXML' é uma suposição, ajuste se for diferente)
+  const response = await api.post('/NotaFiscalCompra/UploadXML', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data;
+}
+
+/**
+ * USUÁRIOS
  */
 export async function getUsuarios() {
   const response = await api.get('/Users');
@@ -145,19 +189,7 @@ export async function deleteUsuario(id) {
 }
 
 /**
- * Endpoints de MOVIMENTAÇÕES (Ex: Saídas/Entradas futuras)
- */
-export async function registrarSaida(saida) {
-  const response = await api.post('/Saidas', saida);
-  return response.data;
-}
-export async function registrarEntrada(entrada) {
-  const response = await api.post('/Entradas', entrada);
-  return response.data;
-}
-
-/**
- * Endpoint de DASHBOARD (Visão Geral)
+ * DASHBOARD (Visão Geral)
  */
 export async function getVisaoGeralEstoque() {
     const response = await api.get('/Relatorios/estoque/visaogeral'); 

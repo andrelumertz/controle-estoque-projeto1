@@ -7,6 +7,11 @@
     <title>Dashboard - Controle de Estoque</title>
     <link href="./dist/output.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+   <style>
+        .nf-tab-content { display: none; }
+        .nf-tab-content.active { display: block; }
+        .nf-tab-button.active { background-color: #7c3aed; color: white; }
+    </style>
 </head>
 
 <body class="bg-[#161625]">
@@ -26,22 +31,35 @@
                     <li id="nav-inicio-btn" class="cursor-pointer"><a href="#"
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white bg-purple-600 text-white"><i
                                 class="fa fa-home"></i> Início</a></li>
+
                     <li id="nav-produtos-btn" class="cursor-pointer"><a href="#"
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-chart-bar"></i> Produtos</a></li>
+
                     <li id="open-pedido-modal-btn" class="cursor-pointer"><a
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-truck-loading"></i> Gerar Pedido</a></li>
+
                     <li id="nav-pedidos-btn" class="cursor-pointer"><a
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-clipboard-list"></i> Listar Pedidos</a></li>
+
                     <li id="open-nota-fiscal-modal-btn" class="cursor-pointer"><a
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-file-invoice"></i> Lançar Nota Fiscal</a></li>
-                    
+
+                    <li id="nav-notas-fiscais-btn" class="cursor-pointer" data-role="admin"><a
+                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
+                                class="fa fa-search-dollar"></i> Listar Notas Fiscais</a></li>
+
                     <li id="nav-clientes-btn" class="cursor-pointer" data-role="admin"><a
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-users-cog"></i> Clientes</a></li>
+
+                    <li id="nav-fornecedores-btn" class="cursor-pointer" data-role="admin"><a
+                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
+                                class="fa fa-truck-field"></i> Fornecedores</a></li>
+
                     <li id="nav-usuarios-btn" class="cursor-pointer" data-role="admin"><a
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-user-edit"></i> Usuários</a></li>
@@ -53,8 +71,8 @@
                         class="fa fa-sign-out-alt"></i> Logout</button>
             </div>
         </aside>
+
         <div id="main-content" class="flex-1 md:ml-64 transition-all duration-300">
-            
             <header class="bg-[#1e1e2d] p-5 flex justify-between items-center border-b border-gray-700">
                 <div class="flex items-center gap-4">
                     <button id="menu-toggle-btn" class="text-white md:hidden z-30">
@@ -89,8 +107,10 @@
                 <div id="produtos-content" class="hidden">
                     <div class="mb-6 bg-[#1e1e2d] p-4 rounded-lg border border-gray-700">
                         <h2 class="text-xl font-bold text-white mb-2">Visão Geral do Estoque</h2>
-                        <p class="text-gray-400">Total de Itens: <span id="total-itens" class="text-white font-bold">0</span></p>
-                        <p class="text-gray-400">Valor Total do Estoque: <span id="valor-total" class="text-white font-bold">R$ 0,00</span></p>
+                        <p class="text-gray-400">Total de Itens: <span id="total-itens"
+                                class="text-white font-bold">0</span></p>
+                        <p class="text-gray-400">Valor Total do Estoque: <span id="valor-total"
+                                class="text-white font-bold">R$ 0,00</span></p>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div class="relative flex-grow w-full sm:w-auto">
@@ -114,7 +134,6 @@
                                 <th class="p-3 sm:hidden">Produto</th>
                                 <th class="p-3 hidden sm:table-cell">Quantidade</th>
                                 <th class="p-3 sm:hidden">Qtd</th>
-                                <th class="p-3">Status</th>
                                 <th class="p-3 hidden md:table-cell">Preço Unitário</th>
                                 <th class="p-3" data-role="admin-header">Ações</th>
                             </tr>
@@ -151,7 +170,36 @@
                         <tbody id="clientes-table-body"></tbody>
                     </table>
                 </div>
-                
+
+                <div id="fornecedores-content" class="hidden" data-role="admin">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <div class="relative flex-grow w-full sm:w-auto">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa fa-search text-gray-400"></i>
+                            </div>
+                            <input type="search" id="search-fornecedor-input" placeholder="Buscar por nome ou CNPJ..."
+                                class="w-full p-2 pl-10 bg-[#161625] border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600">
+                        </div>
+                        <button id="add-fornecedor-header-btn" data-role="admin"
+                            class="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 whitespace-nowrap w-full sm:w-auto">
+                            <i class="fa fa-plus"></i>
+                            <span class="sm:hidden">Novo Fornecedor</span>
+                            <span class="hidden sm:inline">Novo</span>
+                        </button>
+                    </div>
+                    <table class="w-full text-left text-gray-400">
+                        <thead class="bg-[#1e1e2d] text-white">
+                            <tr>
+                                <th class="p-3">Nome</th>
+                                <th class="p-3 hidden md:table-cell">CNPJ</th>
+                                <th class="p-3 hidden sm:table-cell">Telefone</th>
+                                <th class="p-3" data-role="admin-header">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fornecedores-table-body"></tbody>
+                    </table>
+                </div>
+
                 <div id="usuarios-content" class="hidden" data-role="admin">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div class="relative flex-grow w-full sm:w-auto">
@@ -188,26 +236,52 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fa fa-search text-gray-400"></i>
                             </div>
-                            <input type="search" id="search-pedido-input" placeholder="Buscar por cliente ou produto..."
+                            <input type="search" id="search-pedido-input" placeholder="Buscar por cliente ou status..."
                                 class="w-full p-2 pl-10 bg-[#161625] border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600">
                         </div>
                     </div>
                     <table class="w-full text-left text-gray-400">
                         <thead class="bg-[#1e1e2d] text-white">
                             <tr>
-                                <th class="p-3">Produto</th>
+                                <th class="p-3">Nº Pedido</th>
                                 <th class="p-3 hidden sm:table-cell">Cliente</th>
-                                <th class="p-3">Quantidade</th>
                                 <th class="p-3 hidden md:table-cell">Data</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3">Valor Total</th>
                             </tr>
                         </thead>
                         <tbody id="pedidos-table-body"></tbody>
                     </table>
                 </div>
 
+                <div id="notas-fiscais-content" class="hidden" data-role="admin">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <div class="relative flex-grow w-full sm:w-auto">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa fa-search text-gray-400"></i>
+                            </div>
+                            <input type="search" id="search-nota-input"
+                                placeholder="Buscar por Nº da Nota ou Fornecedor..."
+                                class="w-full p-2 pl-10 bg-[#161625] border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600">
+                        </div>
+                    </div>
+                    <table class="w-full text-left text-gray-400">
+                        <thead class="bg-[#1e1e2d] text-white">
+                            <tr>
+                                <th class="p-3">Nº da Nota</th>
+                                <th class="p-3 hidden sm:table-cell">Fornecedor</th>
+                                <th class="p-3 hidden md:table-cell">Data de Emissão</th>
+                                <th class="p-3 hidden sm:table-cell">Valor Total</th>
+                                <th class="p-3" data-role="admin-header">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notas-fiscais-table-body"></tbody>
+                    </table>
+                </div>
+
             </main>
         </div>
-        </div>
+    </div>
 
     <div id="product-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-lg text-white relative border border-gray-700">
@@ -219,28 +293,33 @@
                 <input type="hidden" id="product-id">
                 <div class="mb-4">
                     <label for="product-nome" class="block mb-2 text-sm text-gray-400">Nome do Produto</label>
-                    <input type="text" id="product-nome" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                    <input type="text" id="product-nome"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
                 </div>
                 <div class="mb-4">
                     <label for="product-quantidade" class="block mb-2 text-sm text-gray-400">Quantidade</label>
-                    <input type="number" id="product-quantidade" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                    <input type="number" id="product-quantidade"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
                 </div>
                 <div class="mb-4">
                     <label for="product-preco" class="block mb-2 text-sm text-gray-400">Preço Unitário</label>
-                    <input type="number" step="0.01" id="product-preco" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                    <input type="number" step="0.01" id="product-preco"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
                 </div>
                 <div class="mb-4">
                     <label for="product-tipo" class="block mb-2 text-sm text-gray-400">Tipo do Produto</label>
-                    <input type="text" id="product-tipo" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                    <input type="text" id="product-tipo"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
                 </div>
                 <div class="flex justify-end gap-4 mt-8">
-                    <button type="button" id="cancel-product-btn" class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
+                    <button type="button" id="cancel-product-btn"
+                        class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
                     <button type="submit" class="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
-    
+
     <div id="cliente-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-lg text-white relative border border-gray-700">
             <button id="close-cliente-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
@@ -251,54 +330,143 @@
                 <input type="hidden" id="cliente-id">
                 <div class="mb-4">
                     <label for="cliente-nome" class="block mb-2 text-sm text-gray-400">Nome do Cliente</label>
-                    <input type="text" id="cliente-nome" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                    <input type="text" id="cliente-nome"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
                 </div>
                 <div class="mb-4">
                     <label for="cliente-cnpj" class="block mb-2 text-sm text-gray-400">CNPJ</label>
-                    <input type="text" id="cliente-cnpj" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
+                    <input type="text" id="cliente-cnpj"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
                 </div>
                 <div class="mb-4">
                     <label for="cliente-email" class="block mb-2 text-sm text-gray-400">Email</label>
-                    <input type="email" id="cliente-email" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
+                    <input type="email" id="cliente-email"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
                 </div>
                 <div class="mb-4">
                     <label for="cliente-endereco" class="block mb-2 text-sm text-gray-400">Endereço</label>
-                    <input type="text" id="cliente-endereco" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
+                    <input type="text" id="cliente-endereco"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
                 </div>
                 <div class="flex justify-end gap-4 mt-8">
-                    <button type="button" id="cancel-cliente-btn" class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700">Salvar Cliente</button>
+                    <button type="button" id="cancel-cliente-btn"
+                        class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700">Salvar
+                        Cliente</button>
                 </div>
             </form>
         </div>
     </div>
-    
-    <div id="pedido-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+
+    <div id="fornecedor-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-lg text-white relative border border-gray-700">
+            <button id="close-fornecedor-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fa fa-times fa-lg"></i>
+            </button>
+            <h2 id="fornecedor-modal-title" class="text-2xl font-bold mb-6 text-center">Cadastrar Novo Fornecedor</h2>
+            <form id="fornecedor-form">
+                <input type="hidden" id="fornecedor-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="fornecedor-nome" class="block mb-2 text-sm text-gray-400">Nome do Fornecedor</label>
+                        <input type="text" id="fornecedor-nome"
+                            class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="fornecedor-cnpj" class="block mb-2 text-sm text-gray-400">CNPJ</label>
+                        <input type="text" id="fornecedor-cnpj"
+                            class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="fornecedor-email" class="block mb-2 text-sm text-gray-400">Email</label>
+                        <input type="email" id="fornecedor-email"
+                            class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label for="fornecedor-telefone" class="block mb-2 text-sm text-gray-400">Telefone</label>
+                        <input type="tel" id="fornecedor-telefone"
+                            class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="fornecedor-endereco" class="block mb-2 text-sm text-gray-400">Endereço</label>
+                    <input type="text" id="fornecedor-endereco"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md">
+                </div>
+                <div class="flex justify-end gap-4 mt-8">
+                    <button type="button" id="cancel-fornecedor-btn"
+                        class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700">Salvar
+                        Fornecedor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="pedido-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+        <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-3xl text-white relative border border-gray-700">
             <button id="close-pedido-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
                 <i class="fa fa-times fa-lg"></i>
             </button>
             <h2 class="text-2xl font-bold mb-6 text-center">Gerar Pedido (Retirada)</h2>
+
             <form id="pedido-form">
-                <div class="mb-4">
-                    <label for="pedido-produto" class="block mb-2 text-sm text-gray-400">Produto</label>
-                    <select id="pedido-produto" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
-                        <option value="">Selecione um produto</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label for="pedido-cliente" class="block mb-2 text-sm text-gray-400">Cliente</label>
-                    <select id="pedido-cliente" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                <div class="border-b border-gray-700 pb-4 mb-4">
+                    <label for="pedido-cliente-select" class="block mb-2 text-sm text-gray-400">Cliente</label>
+                    <select id="pedido-cliente-select" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md"
+                        required>
                         <option value="">Selecione um cliente</option>
                     </select>
                 </div>
-                <div class="mb-4">
-                    <label for="pedido-quantidade" class="block mb-2 text-sm text-gray-400">Quantidade a Retirar</label>
-                    <input type="number" id="pedido-quantidade" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required min="1">
+
+                <h3 class="text-lg font-semibold mb-3">Itens do Pedido</h3>
+                <div class="flex flex-wrap items-end gap-4 mb-4 p-4 bg-[#161625] rounded-md">
+                    <div class="flex-grow min-w-[200px]">
+                        <label for="pedido-item-produto-select" class="block mb-2 text-sm text-gray-400">Produto</label>
+                        <select id="pedido-item-produto-select"
+                            class="w-full p-2 bg-[#1e1e2d] border border-gray-700 rounded-md">
+                            <option value="">Selecione um produto</option>
+                        </select>
+                    </div>
+                    <div class="flex-grow" style="max-width: 150px;">
+                        <label for="pedido-item-qtd-input" class="block mb-2 text-sm text-gray-400">Quantidade</label>
+                        <input type="number" id="pedido-item-qtd-input"
+                            class="w-full p-2 bg-[#1e1e2d] border border-gray-700 rounded-md" min="1">
+                    </div>
+                    <button type="button" id="pedido-add-item-btn"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Adicionar</button>
                 </div>
-                <div class="flex justify-end gap-4 mt-8">
-                    <button type="button" id="cancel-pedido-btn" class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-orange-600 rounded-md hover:bg-orange-700">Gerar Pedido</button>
+
+                <div class="h-48 overflow-y-auto border border-gray-700 rounded-md">
+                    <table class="w-full text-left text-gray-400">
+                        <thead class="bg-[#1e1e2d] text-white">
+                            <tr>
+                                <th class="p-3">Produto</th>
+                                <th class="p-3">Qtd</th>
+                                <th class="p-3">Preço Unit.</th>
+                                <th class="p-3">Subtotal</th>
+                                <th class="p-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedido-items-list-body">
+                            <tr>
+                                <td class="p-3 text-center text-gray-500" colspan="5">Nenhum item adicionado.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-between items-center mt-6">
+                    <h3 class="text-xl font-bold">Valor Total do Pedido: <span id="pedido-valor-total"
+                            class="text-green-500">R$ 0,00</span></h3>
+                    <div>
+                        <button type="button" id="cancel-pedido-btn"
+                            class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 mr-4">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-orange-600 rounded-md hover:bg-orange-700">Gerar
+                            Pedido</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -314,17 +482,21 @@
                 <input type="hidden" id="usuario-id">
                 <div class="mb-4">
                     <label for="usuario-nome" class="block mb-2 text-sm text-gray-400">Nome Completo</label>
-                    <input type="text" id="usuario-nome" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                    <input type="text" id="usuario-nome" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md"
+                        required>
                 </div>
                 <div class="mb-4">
                     <label for="usuario-email" class="block mb-2 text-sm text-gray-400">Email</label>
-                    <input type="email" id="usuario-email" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                    <input type="email" id="usuario-email" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md"
+                        required>
                 </div>
                 <div class="mb-4">
                     <label for="usuario-senha" class="block mb-2 text-sm text-gray-400">Senha</label>
-                    <input type="password" id="usuario-senha" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" placeholder="Deixe em branco para não alterar">
+                    <input type="password" id="usuario-senha"
+                        class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md"
+                        placeholder="Deixe em branco para não alterar">
                 </div>
-                 <div class="mb-4">
+                <div class="mb-4">
                     <label for="usuario-role" class="block mb-2 text-sm text-gray-400">Permissão</label>
                     <select id="usuario-role" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
                         <option value="user">Usuário</option>
@@ -332,20 +504,145 @@
                     </select>
                 </div>
                 <div class="flex justify-end gap-4 mt-8">
-                    <button type="button" id="cancel-usuario-btn" class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700">Salvar Usuário</button>
+                    <button type="button" id="cancel-usuario-btn"
+                        class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700">Salvar
+                        Usuário</button>
                 </div>
             </form>
         </div>
     </div>
     
-    <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+    <div id="nota-fiscal-modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+        <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-3xl text-white relative border border-gray-700">
+            <button id="close-nota-fiscal-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fa fa-times fa-lg"></i>
+            </button>
+            <h2 id="nf-modal-title" class="text-2xl font-bold mb-6 text-center">Lançar Nota Fiscal de Entrada</h2>
+            <input type="hidden" id="nf-id">
+
+            <div id="nf-modal-tabs" class="border-b border-gray-700 mb-4">
+                <nav class="flex space-x-4" aria-label="Tabs">
+                    <button id="nf-tab-manual-btn" type="button"
+                        class="nf-tab-button active px-3 py-2 font-medium text-sm rounded-t-md text-gray-400 hover:text-white">
+                        Cadastro Manual
+                    </button>
+                    <button id="nf-tab-xml-btn" type="button"
+                        class="nf-tab-button px-3 py-2 font-medium text-sm rounded-t-md text-gray-400 hover:text-white">
+                        Importar XML
+                    </button>
+                </nav>
+            </div>
+
+            <div id="nf-tab-manual-content" class="nf-tab-content active">
+                <form id="nf-manual-form">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-gray-700 pb-4 mb-4">
+                        <div>
+                            <label for="nf-fornecedor" class="block mb-2 text-sm text-gray-400">Fornecedor</label>
+                            <select id="nf-fornecedor" class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md"
+                                required>
+                                <option value="">Selecione um fornecedor</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="nf-numero" class="block mb-2 text-sm text-gray-400">Número da Nota</label>
+                            <input type="text" id="nf-numero"
+                                class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="nf-data" class="block mb-2 text-sm text-gray-400">Data de Emissão</label>
+                            <input type="date" id="nf-data"
+                                class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-3">Itens da Nota</h3>
+                    <div class="flex flex-wrap items-end gap-4 mb-4 p-4 bg-[#161625] rounded-md">
+                        <div class="flex-grow min-w-[200px]">
+                            <label for="nf-item-produto" class="block mb-2 text-sm text-gray-400">Produto</label>
+                            <select id="nf-item-produto"
+                                class="w-full p-2 bg-[#1e1e2d] border border-gray-700 rounded-md">
+                                <option value="">Selecione um produto</option>
+                            </select>
+                        </div>
+                        <div class="flex-grow" style="max-width: 120px;">
+                            <label for="nf-item-qtd" class="block mb-2 text-sm text-gray-400">Quantidade</label>
+                            <input type="number" id="nf-item-qtd"
+                                class="w-full p-2 bg-[#1e1e2d] border border-gray-700 rounded-md" min="1">
+                        </div>
+                        <div class="flex-grow" style="max-width: 150px;">
+                            <label for="nf-item-custo" class="block mb-2 text-sm text-gray-400">Custo Unitário
+                                (R$)</label>
+                            <input type="number" id="nf-item-custo"
+                                class="w-full p-2 bg-[#1e1e2d] border border-gray-700 rounded-md" step="0.01" min="0">
+                        </div>
+                        <button type="button" id="nf-add-item-btn"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Adicionar</button>
+                    </div>
+                    <div class="h-48 overflow-y-auto border border-gray-700 rounded-md">
+                        <table class="w-full text-left text-gray-400">
+                            <thead class="bg-[#1e1e2d] text-white">
+                                <tr>
+                                    <th class="p-3">Produto</th>
+                                    <th class="p-3">Qtd</th>
+                                    <th class="p-3">Custo Unit.</th>
+                                    <th class="p-3">Total</th>
+                                    <th class="p-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="nf-items-list-body">
+                                <tr>
+                                    <td class="p-3 text-center text-gray-500" colspan="5">Nenhum item adicionado.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex justify-between items-center mt-6">
+                        <h3 class="text-xl font-bold">Valor Total da Nota: <span id="nf-valor-total"
+                                class="text-green-500">R$ 0,00</span></h3>
+                        <div>
+                            <button type="button" id="cancel-nota-fiscal-btn"
+                                class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 mr-4">Cancelar</button>
+                            <button type="submit" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700">Salvar
+                                Nota Fiscal</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="nf-tab-xml-content" class="nf-tab-content">
+                <form id="nf-xml-form">
+                    <p class="text-gray-400 mb-4">Faça o upload do arquivo XML da sua Nota Fiscal de Compra. O sistema
+                        lerá os dados e atualizará o estoque automaticamente.</p>
+                    <div class="mb-4">
+                        <label for="nf-xml-file" class="block mb-2 text-sm text-gray-400">Arquivo XML</label>
+                        <input type="file" id="nf-xml-file" class="w-full text-gray-400 file:mr-4 file:py-2 file:px-4
+                                  file:rounded-md file:border-0 file:text-sm file:font-semibold
+                                  file:bg-purple-600 file:text-white hover:file:bg-purple-700" accept=".xml, text/xml"
+                            required>
+                    </div>
+                    <div class="flex justify-end gap-4 mt-8">
+                        <button type="button" id="cancel-nota-fiscal-xml-btn"
+                            class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700">Importar
+                            XML</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete-confirm-modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-md text-white border border-gray-700 shadow-lg">
             <h2 class="text-xl font-bold mb-4">⚠️ Confirmar Exclusão</h2>
-            <p id="delete-confirm-message" class="text-gray-400 mb-6">Você tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.</p>
+            <p id="delete-confirm-message" class="text-gray-400 mb-6">Você tem certeza que deseja excluir este item?
+                Esta ação não pode ser desfeita.</p>
             <div class="flex justify-end gap-4">
-                <button id="cancel-delete-btn" class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 font-bold">Cancelar</button>
-                <button id="confirm-delete-btn" class="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700 font-bold">Excluir</button>
+                <button id="cancel-delete-btn"
+                    class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 font-bold">Cancelar</button>
+                <button id="confirm-delete-btn"
+                    class="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700 font-bold">Excluir</button>
             </div>
         </div>
     </div>
