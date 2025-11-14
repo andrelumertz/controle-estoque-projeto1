@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Controle de Estoque</title>
+    <title>Contorle Fácil - Dashboard</title>
     <link href="./dist/output.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
    <style>
@@ -12,6 +12,7 @@
         .nf-tab-content.active { display: block; }
         .nf-tab-button.active { background-color: #7c3aed; color: white; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="bg-[#161625]">
@@ -22,8 +23,8 @@
                     transition-transform duration-300 ease-in-out">
 
             <div class="mb-8 px-4 py-2">
-                <img src="./assets/logo-empresa.png" alt="Logo da Empresa"
-                    class="w-full h-auto rounded-full object-cover" />
+                <img src="./assets/controle-facil-logo.png" alt="Logo da Empresa"
+                    class="w-full h-auto object-contain p-2" />
             </div>
 
             <nav class="flex-grow">
@@ -31,6 +32,10 @@
                     <li id="nav-inicio-btn" class="cursor-pointer"><a href="#"
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white bg-purple-600 text-white"><i
                                 class="fa fa-home"></i> Início</a></li>
+
+                    <li id="nav-relatorios-btn" class="cursor-pointer"><a
+                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
+                                class="fa fa-chart-pie"></i> Relatórios</a></li>
 
                     <li id="nav-produtos-btn" class="cursor-pointer"><a href="#"
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
@@ -48,19 +53,19 @@
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-file-invoice"></i> Lançar Nota Fiscal</a></li>
 
-                    <li id="nav-notas-fiscais-btn" class="cursor-pointer" data-role="admin"><a
+                    <li id="nav-notas-fiscais-btn" class="cursor-pointer"><a
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-search-dollar"></i> Listar Notas Fiscais</a></li>
 
-                    <li id="nav-clientes-btn" class="cursor-pointer" data-role="admin"><a
+                    <li id="nav-clientes-btn" class="cursor-pointer"><a
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-users-cog"></i> Clientes</a></li>
 
-                    <li id="nav-fornecedores-btn" class="cursor-pointer" data-role="admin"><a
+                    <li id="nav-fornecedores-btn" class="cursor-pointer"><a
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-truck-field"></i> Fornecedores</a></li>
 
-                    <li id="nav-usuarios-btn" class="cursor-pointer" data-role="admin"><a
+                    <li id="nav-usuarios-btn" class="cursor-pointer"><a
                             class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
                                 class="fa fa-user-edit"></i> Usuários</a></li>
                 </ul>
@@ -71,8 +76,8 @@
                         class="fa fa-sign-out-alt"></i> Logout</button>
             </div>
         </aside>
-
         <div id="main-content" class="flex-1 md:ml-64 transition-all duration-300">
+            
             <header class="bg-[#1e1e2d] p-5 flex justify-between items-center border-b border-gray-700">
                 <div class="flex items-center gap-4">
                     <button id="menu-toggle-btn" class="text-white md:hidden z-30">
@@ -85,13 +90,13 @@
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden sm:block">
-                        <span id="user-name-display" class="text-white font-bold">Admin</span>
-                        <small id="user-role-display" class="block text-gray-400">Gerente</small>
+                        <span id="user-name-display" class="text-white font-bold">Usuário</span>
+                        <small id="user-role-display" class="block text-gray-400">Online</small>
                     </div>
                     <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl text-white">
                         <i class="fa fa-user"></i>
                     </div>
-                    <button id="header-logout-btn" class="text-white hover:text-purple-600"><i
+                    <button id="header-logout-btn" class="text-white hover:bg-purple-600"><i
                             class="fa fa-sign-out-alt"></i> Sair</button>
                 </div>
             </header>
@@ -99,9 +104,30 @@
             <main class="p-4 md:p-6">
 
                 <div id="inicio-content" class="flex flex-col justify-center items-center h-full text-center">
-                    <h2 class="text-3xl font-bold text-white mb-6">Bem-vindo ao ECOPAK!</h2>
+                    <h2 class="text-3xl font-bold text-white mb-6">Bem-vindo ao Controle Fácil!</h2>
                     <p class="text-gray-400 text-lg">Este é o seu painel de controle de estoque.</p>
                     <p class="text-gray-400 mt-2">Use o menu ao lado para navegar pelas seções.</p>
+                </div>
+
+                <div id="relatorios-content" class="hidden">
+                    <h2 class="text-3xl font-bold text-white mb-6">Relatórios Gerenciais</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-[#1e1e2d] p-6 rounded-lg shadow-md border border-gray-700 lg:col-span-2">
+                            <h3 class="text-xl font-semibold mb-4 text-white">Vendas (Últimos 6 Meses)</h3>
+                            <canvas id="vendasChart"></canvas>
+                        </div>
+                        <div class="bg-[#1e1e2d] p-6 rounded-lg shadow-md border border-gray-700">
+                            <h3 class="text-xl font-semibold mb-4 text-white">Top 5 Itens Mais Vendidos</h3>
+                            <canvas id="topItensChart"></canvas>
+                        </div>
+                        <div class="bg-[#1e1e2d] p-6 rounded-lg shadow-md border border-gray-700">
+                            <h3 class="text-xl font-semibold mb-4 text-white">Top 5 Clientes</h3>
+                            <div class="max-w-xs mx-auto">
+                                <canvas id="topClientesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="produtos-content" class="hidden">
@@ -109,7 +135,9 @@
                         <h2 class="text-xl font-bold text-white mb-2">Visão Geral do Estoque</h2>
                         <p class="text-gray-400">Total de Itens: <span id="total-itens"
                                 class="text-white font-bold">0</span></p>
-                        <p class="text-gray-400">Valor Total do Estoque: <span id="valor-total"
+                        <p class="text-gray-400">Valor Total (Venda): <span id="valor-total-venda"
+                                class="text-white font-bold">R$ 0,00</span></p>
+                        <p class="text-gray-400">Valor Total (Custo): <span id="valor-total-custo"
                                 class="text-white font-bold">R$ 0,00</span></p>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
@@ -120,7 +148,7 @@
                             <input type="search" id="search-produto-input" placeholder="Buscar por nome do produto..."
                                 class="w-full p-2 pl-10 bg-[#161625] border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600">
                         </div>
-                        <button id="add-product-header-btn" data-role="admin"
+                        <button id="add-product-header-btn"
                             class="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 whitespace-nowrap w-full sm:w-auto">
                             <i class="fa fa-plus"></i>
                             <span class="sm:hidden">Novo Produto</span>
@@ -134,15 +162,16 @@
                                 <th class="p-3 sm:hidden">Produto</th>
                                 <th class="p-3 hidden sm:table-cell">Quantidade</th>
                                 <th class="p-3 sm:hidden">Qtd</th>
+                                <th class="p-3">Status</th>
                                 <th class="p-3 hidden md:table-cell">Preço Unitário</th>
-                                <th class="p-3" data-role="admin-header">Ações</th>
+                                <th class="p-3">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="products-table-body"></tbody>
                     </table>
                 </div>
 
-                <div id="clientes-content" class="hidden" data-role="admin">
+                <div id="clientes-content" class="hidden">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div class="relative flex-grow w-full sm:w-auto">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -151,7 +180,7 @@
                             <input type="search" id="search-cliente-input" placeholder="Buscar por nome ou CNPJ..."
                                 class="w-full p-2 pl-10 bg-[#161625] border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600">
                         </div>
-                        <button id="add-cliente-header-btn" data-role="admin"
+                        <button id="add-cliente-header-btn"
                             class="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 whitespace-nowrap w-full sm:w-auto">
                             <i class="fa fa-plus"></i>
                             <span class="sm:hidden">Novo Cliente</span>
@@ -164,14 +193,14 @@
                                 <th class="p-3">Nome</th>
                                 <th class="p-3 hidden md:table-cell">CNPJ</th>
                                 <th class="p-3 hidden sm:table-cell">Email</th>
-                                <th class="p-3" data-role="admin-header">Ações</th>
+                                <th class="p-3">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="clientes-table-body"></tbody>
                     </table>
                 </div>
 
-                <div id="fornecedores-content" class="hidden" data-role="admin">
+                <div id="fornecedores-content" class="hidden">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div class="relative flex-grow w-full sm:w-auto">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -180,7 +209,7 @@
                             <input type="search" id="search-fornecedor-input" placeholder="Buscar por nome ou CNPJ..."
                                 class="w-full p-2 pl-10 bg-[#161625] border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600">
                         </div>
-                        <button id="add-fornecedor-header-btn" data-role="admin"
+                        <button id="add-fornecedor-header-btn"
                             class="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 whitespace-nowrap w-full sm:w-auto">
                             <i class="fa fa-plus"></i>
                             <span class="sm:hidden">Novo Fornecedor</span>
@@ -193,14 +222,14 @@
                                 <th class="p-3">Nome</th>
                                 <th class="p-3 hidden md:table-cell">CNPJ</th>
                                 <th class="p-3 hidden sm:table-cell">Telefone</th>
-                                <th class="p-3" data-role="admin-header">Ações</th>
+                                <th class="p-3">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="fornecedores-table-body"></tbody>
                     </table>
                 </div>
 
-                <div id="usuarios-content" class="hidden" data-role="admin">
+                <div id="usuarios-content" class="hidden">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div class="relative flex-grow w-full sm:w-auto">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -209,7 +238,7 @@
                             <input type="search" id="search-usuario-input" placeholder="Buscar por nome ou email..."
                                 class="w-full p-2 pl-10 bg-[#161625] border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600">
                         </div>
-                        <button id="add-usuario-header-btn" data-role="admin"
+                        <button id="add-usuario-header-btn"
                             class="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 whitespace-nowrap w-full sm:w-auto">
                             <i class="fa fa-plus"></i>
                             <span class="sm:hidden">Novo Usuário</span>
@@ -223,7 +252,7 @@
                                 <th class="p-3 hidden sm:table-cell">Email</th>
                                 <th class="p-3 hidden md:table-cell">Permissão (Role)</th>
                                 <th class="p-3">Status</th>
-                                <th class="p-3" data-role="admin-header">Ações</th>
+                                <th class="p-3">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="usuarios-table-body"></tbody>
@@ -254,7 +283,7 @@
                     </table>
                 </div>
 
-                <div id="notas-fiscais-content" class="hidden" data-role="admin">
+                <div id="notas-fiscais-content" class="hidden">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div class="relative flex-grow w-full sm:w-auto">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -272,7 +301,7 @@
                                 <th class="p-3 hidden sm:table-cell">Fornecedor</th>
                                 <th class="p-3 hidden md:table-cell">Data de Emissão</th>
                                 <th class="p-3 hidden sm:table-cell">Valor Total</th>
-                                <th class="p-3" data-role="admin-header">Ações</th>
+                                <th class="p-3">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="notas-fiscais-table-body"></tbody>
@@ -283,7 +312,9 @@
         </div>
     </div>
 
-    <div id="product-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+    <!-- === SEÇÃO DE MODAIS (INÍCIO) === -->
+<!-- === MODAL: Produto (INÍCIO) === -->
+<div id="product-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-lg text-white relative border border-gray-700">
             <button id="close-product-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
                 <i class="fa fa-times fa-lg"></i>
@@ -319,8 +350,9 @@
             </form>
         </div>
     </div>
-
-    <div id="cliente-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+    
+    <!-- === MODAL: Cliente (INÍCIO) === -->
+<div id="cliente-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-lg text-white relative border border-gray-700">
             <button id="close-cliente-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
                 <i class="fa fa-times fa-lg"></i>
@@ -357,8 +389,9 @@
             </form>
         </div>
     </div>
-
-    <div id="fornecedor-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+    
+    <!-- === MODAL: Fornecedor (INÍCIO) === -->
+<div id="fornecedor-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-lg text-white relative border border-gray-700">
             <button id="close-fornecedor-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
                 <i class="fa fa-times fa-lg"></i>
@@ -405,7 +438,8 @@
         </div>
     </div>
 
-    <div id="pedido-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+    <!-- === MODAL: Pedido (INÍCIO) === -->
+<div id="pedido-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-3xl text-white relative border border-gray-700">
             <button id="close-pedido-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
                 <i class="fa fa-times fa-lg"></i>
@@ -472,7 +506,8 @@
         </div>
     </div>
     
-    <div id="usuario-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+    <!-- === MODAL: Usuário (INÍCIO) === -->
+<div id="usuario-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-lg text-white relative border border-gray-700">
             <button id="close-usuario-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
                 <i class="fa fa-times fa-lg"></i>
@@ -513,12 +548,14 @@
         </div>
     </div>
     
-    <div id="nota-fiscal-modal"
+    <!-- === MODAL: Nota Fiscal (INÍCIO) === -->
+<div id="nota-fiscal-modal"
         class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-3xl text-white relative border border-gray-700">
             <button id="close-nota-fiscal-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">
                 <i class="fa fa-times fa-lg"></i>
             </button>
+            
             <h2 id="nf-modal-title" class="text-2xl font-bold mb-6 text-center">Lançar Nota Fiscal de Entrada</h2>
             <input type="hidden" id="nf-id">
 
@@ -556,8 +593,7 @@
                                 class="w-full p-2 bg-[#161625] border border-gray-700 rounded-md" required>
                         </div>
                     </div>
-                    <h3 class="text-lg font-semibold mb-3">Itens da Nota</h3>
-                    <div class="flex flex-wrap items-end gap-4 mb-4 p-4 bg-[#161625] rounded-md">
+                    <div id="nf-add-item-box" class="flex flex-wrap items-end gap-4 mb-4 p-4 bg-[#161625] rounded-md">
                         <div class="flex-grow min-w-[200px]">
                             <label for="nf-item-produto" class="block mb-2 text-sm text-gray-400">Produto</label>
                             <select id="nf-item-produto"
@@ -598,12 +634,12 @@
                         </table>
                     </div>
                     <div class="flex justify-between items-center mt-6">
-                        <h3 class="text-xl font-bold">Valor Total da Nota: <span id="nf-valor-total"
+                         <h3 class="text-xl font-bold">Valor Total da Nota: <span id="nf-valor-total-label"
                                 class="text-green-500">R$ 0,00</span></h3>
                         <div>
                             <button type="button" id="cancel-nota-fiscal-btn"
                                 class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 mr-4">Cancelar</button>
-                            <button type="submit" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700">Salvar
+                            <button type="submit" id="nf-save-btn" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700">Salvar
                                 Nota Fiscal</button>
                         </div>
                     </div>
@@ -632,7 +668,8 @@
         </div>
     </div>
 
-    <div id="delete-confirm-modal"
+    <!-- === MODAL: Confirmação de Exclusão (INÍCIO) === -->
+<div id="delete-confirm-modal"
         class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-[#1e1e2d] p-8 rounded-lg w-full max-w-md text-white border border-gray-700 shadow-lg">
             <h2 class="text-xl font-bold mb-4">⚠️ Confirmar Exclusão</h2>
@@ -646,6 +683,8 @@
             </div>
         </div>
     </div>
+    <!-- === MODAL: Confirmação de Exclusão (FIM) === -->
+<!-- === SEÇÃO DE MODAIS (FIM) === -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js" type="module"></script>
 </body>

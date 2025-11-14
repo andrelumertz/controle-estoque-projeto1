@@ -1,26 +1,6 @@
 import { autenticar } from './services/api.js';
 
-/**
- * Decodifica um token JWT para extrair o payload (dados).
- * @param {string} token O token JWT
- * @returns {object | null} O payload do token decodificado ou null se falhar.
- */
-function parseJwt(token) {
-    try {
-        const base64Url = token.split('.')[1]; // Pega o "payload" do token
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        console.error("Erro ao decodificar token", e);
-        return null;
-    }
-}
-
-// 1. Pega as referências dos elementos do formulário
+// 1. Pega as referências dos elementos
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
 const senhaInput = document.getElementById('password');
@@ -37,35 +17,31 @@ loginForm.addEventListener('submit', async (event) => {
   submitButton.textContent = 'Entrando...';
 
   try {
-    // 3. Tenta autenticar
-    const token = await autenticar(email, senha);
+    // 3. Tenta autenticar.
+    // A função 'autenticar' (do api.js) vai:
+    // 1. Chamar a API
+    // 2. Pegar o { token, role }
+    // 3. Salvar TUDO no localStorage
+    // 4. Retornar o { token, role } (que não precisamos usar aqui)
     
-    // Decodifica o token e salva a role
-    if (token) {
-        const payload = parseJwt(token);
-        if (payload) {
-            
-            // Procura por 'tipo' (do seu DB) ou a claim longa do .NET
-            const userRole = payload.tipo || payload.role || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-            
-            if (userRole) {
-                localStorage.setItem('userRole', userRole);
-            } else {
-                console.warn("Claim 'tipo' ou 'role' não encontrada no token JWT. Definindo como 'user'.");
-                localStorage.setItem('userRole', 'user'); 
-            }
-        }
-    }
+    await autenticar(email, senha); //
     
-    // SUCESSO!
+    // Se a linha acima NÃO deu erro, o login foi sucesso
+    // e o localStorage JÁ FOI salvo pela própria função 'autenticar'.
+    
+    // SUCESSO! Apenas redireciona.
     window.location.href = 'dashboard.html';
 
   } catch (error) {
     // FALHA!
     console.error(error);
-    alert(error.message); // Mostra o erro (ex: "Email ou senha inválidos")
+    // A função 'autenticar' (do api.js) já formata a msg de erro
+    alert(error.message); 
     
     submitButton.disabled = false;
     submitButton.textContent = 'Entrar';
   }
 });
+
+// A função parseJwt não é mais usada nesta página.
+// function parseJwt(token) { ... }
