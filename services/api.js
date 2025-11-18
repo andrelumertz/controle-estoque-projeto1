@@ -1,4 +1,4 @@
-// services/api.js
+// services/api.js (COMPLETO E CORRIGIDO)
 // --- 1. CONFIGURAÇÃO PRINCIPAL ---
 const API_URL = 'https://localhost:7202/api';
 
@@ -26,7 +26,7 @@ api.interceptors.response.use(
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       alert('Sua sessão expirou ou você não tem permissão. Faça o login novamente.');
       localStorage.removeItem('authToken');
-      window.location.href = 'login.html'; 
+      window.location.href = 'login.html';
     }
     return Promise.reject(error);
   }
@@ -119,24 +119,41 @@ export async function deleteFornecedor(id) {
 
 
 /**
- * PEDIDOS
+ * PEDIDOS (Atualizado)
  */
-export async function getPedidos() {
-  const response = await api.get('/Pedidos');
+export async function getPedidos(status = null) {
+  const params = {};
+  if (status) {
+    params.status = status;
+  }
+  const response = await api.get('/Pedidos', { params });
   return response.data;
 }
+
 export async function addPedido(pedido) {
   const response = await api.post('/Pedidos', pedido);
   return response.data;
 }
 
+export async function getPedido(id) {
+  const response = await api.get(`/Pedidos/${id}`);
+  return response.data;
+}
+
+export async function updatePedidoStatus(id, status) {
+  await api.put(`/Pedidos/${id}/status`, JSON.stringify(status), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
 
 /**
- * NOTAS FISCAIS
+ * NOTAS FISCAIS (Atualizado)
  */
 export async function getNotasFiscais() {
-  console.warn("API: O endpoint GET /api/NotaFiscalCompra (listar todas) não foi implementado.");
-  return []; 
+  // Agora que o endpoint existe no backend, podemos chamá-lo.
+  const response = await api.get('/NotaFiscalCompra');
+  return response.data;
 }
 export async function getNotaFiscal(id) {
   const response = await api.get(`/NotaFiscalCompra/${id}`);
@@ -186,16 +203,15 @@ export async function getVisaoGeralEstoque() {
   const response = await api.get('/Relatorios/estoque/visaogeral');
   return response.data;
 }
-// --- NOVAS FUNÇÕES DE RELATÓRIO ---
 export async function getVendasPorMes() {
-    const response = await api.get('/Relatorios/vendas/pormes');
-    return response.data;
+  const response = await api.get('/Relatorios/vendas/pormes');
+  return response.data;
 }
 export async function getTop5Produtos() {
-    const response = await api.get('/Relatorios/vendas/top5produtos');
-    return response.data;
+  const response = await api.get('/Relatorios/vendas/top5produtos');
+  return response.data;
 }
 export async function getTop5Clientes() {
-    const response = await api.get('/Relatorios/vendas/top5clientes');
-    return response.data;
+  const response = await api.get('/Relatorios/vendas/top5clientes');
+  return response.data;
 }

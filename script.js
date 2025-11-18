@@ -4,7 +4,7 @@ import {
     getClientes, getCliente, addCliente, updateCliente, deleteCliente,
     getFornecedores, getFornecedor, addFornecedor, updateFornecedor, deleteFornecedor,
     getUsuarios, getUsuario, addUsuario, updateUsuario, deleteUsuario,
-    getPedidos, addPedido,
+    getPedidos, addPedido, getPedido, updatePedidoStatus,
     getNotasFiscais, getNotaFiscal, addNotaFiscalManual, updateNotaFiscal, deleteNotaFiscal, addNotaFiscalXml,
 
     // Funções de Relatório (Novas e Corrigidas)
@@ -27,7 +27,16 @@ function formatarMoeda(valor) {
     }
     return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
-
+function formatarData(dataString) {
+    if (!dataString) return 'N/A';
+    try {
+        return new Date(dataString).toLocaleDateString('pt-BR', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+    } catch (e) {
+        return 'Data Inválida';
+    }
+}
 // --- Função applyUserRoleLimits REMOVIDA ---
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -117,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const productNomeInput = document.getElementById('product-nome');
     const productQuantidadeInput = document.getElementById('product-quantidade');
     const productPrecoInput = document.getElementById('product-preco');
+    const productCustoInput = document.getElementById('product-custo');
     const productTipoInput = document.getElementById('product-tipo');
 
     // Modal de CLIENTE
@@ -312,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const corTextoGrafico = '#9CA3AF'; // Cinza claro (para texto/ticks)
     const corGridGrafico = '#374151';   // Cinza escuro (para linhas de grade)
     const corBordaPizza = '#1e1e2d';    // Cor de fundo (para borda da pizza)
-    
+
 
 
     /**
@@ -483,58 +493,72 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 8. FUNÇÕES DE DADOS (Carregar e Renderizar Tabelas) ---
 
     // --- PRODUTOS (CORRIGIDO) ---
-    function renderizarTabelaProdutos(produtos) {
-        if (!productsTableBody) return;
-        productsTableBody.innerHTML = '';
-        if (produtos.length === 0) {
-            const msg = searchProdutoInput.value ? "Nenhum produto encontrado." : "Nenhum produto cadastrado.";
-            productsTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">${msg}</td></tr>`;
+    function renderizarTabelaPedidos(pedidos) {
+        if (!pedidosTableBody) return;
+        pedidosTableBody.innerHTML = '';
+        if (pedidos.length === 0) {
+            const msg = searchPedidoInput.value ? "Nenhum pedido encontrado." : "Nenhum pedido cadastrado.";
+            pedidosTableBody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-500">${msg}</td></tr>`; // Colspan 6
             return;
         }
-        produtos.forEach(produto => {
+        pedidos.forEach(pedido => {
             const tr = document.createElement('tr');
-            tr.className = 'border-b border-gray-700 hover:bg-[#1e1e2d]';
+            // (NOVO) Adiciona classe e data-id para clique
+            tr.className = 'border-b border-gray-700 hover:bg-[#1e1e2d] pedido-row-clickable';
+            tr.dataset.id = pedido.id;
 
-            const statusClass = produto.status === 'Em Estoque' ? 'text-green-500' : 'text-red-500';
-            const statusHtml = `<span class="font-bold ${statusClass}">${produto.status}</span>`;
+            const dataFormatada = formatarData(pedido.dataPedido);
+            const statusLower = (pedido.status || '').toLowerCase();
+            let statusHtml = '';
 
-            const acoesHtml = `
-                <button data-id="${produto.id}" data-nome="${produto.nome}" class="text-blue-500 hover:text-blue-400 mr-2 edit-btn" title="Editar">
-                    <i class="fa fa-edit"></i>
-                </button>
-                <button data-id="${produto.id}" data-nome="${produto.nome}" class="text-red-500 hover:text-red-400 delete-btn" title="Excluir">
-                    <i class="fa fa-trash-alt"></i>
-                </button>
-            `;
+            // Lógica dos Badges de Status
+            if (statusLower === 'concluído') {
+                statusHtml = '<span class="bg-green-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Concluído</span>';
+            } else if (statusLower === 'pendente') {
+                statusHtml = '<span class="bg-yellow-500 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Pendente</span>';
+            } else if (statusLower === 'cancelado') {
+                statusHtml = '<span class="bg-red-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Cancelado</span>';
+            } else {
+                statusHtml = `<span class="bg-gray-500 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">${pedido.status || 'N/A'}</span>`;
+            }
 
+            // (NOVO) Coluna Ações
             tr.innerHTML = `
-                <td class="p-3 hidden sm:table-cell">${produto.nome || 'N/A'}</td>
-                <td class="p-3 sm:hidden">${produto.nome || 'N/A'}</td>
-                <td class="p-3 hidden sm:table-cell">${produto.quantidade ?? 'N/A'}</td>
-                <td class="p-3 sm:hidden">${produto.quantidade ?? 'N/A'}</td>
-                <td class="p-3">${statusHtml}</td> 
-                <td class="p-3 hidden md:table-cell">${formatarMoeda(produto.precoVenda)}</td>
-                <td class="p-3">${acoesHtml}</td>
+                <td class="p-3 font-medium text-white">${pedido.id}</td>
+                <td class="p-3 hidden sm:table-cell">${pedido.nomeCliente || 'N/A'}</td>
+                <td class="p-3 hidden md:table-cell">${dataFormatada}</td>
+                <td class="p-3">${statusHtml}</td>
+                <td class="p-3 font-medium text-white">${formatarMoeda(pedido.valorTotal)}</td>
+                <td class="p-3 text-gray-400">
+                    <i class="fa fa-eye"></i>
+                </td>
             `;
-            productsTableBody.appendChild(tr);
+            pedidosTableBody.appendChild(tr);
         });
     }
-    async function carregarProdutosTabela() {
-        if (!productsTableBody) return;
-        productsTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">Carregando...</td></tr>`;
-        try {
-            const produtos = await getProdutos();
-            todosOsProdutos = produtos;
-            renderizarTabelaProdutos(todosOsProdutos);
 
-            const optionHtml = produtos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
-            pedidoItemProdutoSelect.innerHTML = '<option value="">Selecione um produto</option>' + optionHtml;
-            nfItemProdutoSelect.innerHTML = '<option value="">Selecione um produto</option>' + optionHtml;
+    // (ATUALIZADO) Aceita status
+    async function carregarPedidosTabela(status = null) {
+        if (!pedidosTableBody) return;
+        pedidosTableBody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-500">Carregando...</td></tr>`; // Colspan 6
+        try {
+            const pedidos = await getPedidos(status); // Passa o status
+            todosOsPedidos = pedidos;
+            renderizarTabelaPedidos(todosOsPedidos);
         } catch (error) {
-            console.error("Erro ao carregar produtos:", error);
-            productsTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-red-500">Falha ao carregar produtos.</td></tr>`;
+            console.error("Erro ao carregar pedidos:", error);
+            pedidosTableBody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-red-500">Falha ao carregar pedidos.</td></tr>`;
         }
     }
+
+    searchPedidoInput?.addEventListener('input', () => {
+        const searchTerm = searchPedidoInput.value.toLowerCase();
+        const filtrados = todosOsPedidos.filter(p =>
+            (p.nomeCliente || '').toLowerCase().includes(searchTerm) ||
+            (p.status || '').toLowerCase().includes(searchTerm)
+        );
+        renderizarTabelaPedidos(filtrados);
+    });
 
     // --- CLIENTES (CORRIGIDO) ---
     function renderizarTabelaClientes(clientes) {
@@ -701,68 +725,72 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- PEDIDOS (CORRIGIDO) ---
-    function renderizarTabelaPedidos(pedidos) {
-        if (!pedidosTableBody) return;
-        pedidosTableBody.innerHTML = '';
-        if (pedidos.length === 0) {
-            const msg = searchPedidoInput.value ? "Nenhum pedido encontrado." : "Nenhum pedido cadastrado.";
-            pedidosTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">${msg}</td></tr>`;
+
+    // --- PRODUTOS (CORRIGIDO) ---
+    function renderizarTabelaProdutos(produtos) {
+        if (!productsTableBody) return;
+        productsTableBody.innerHTML = '';
+        if (produtos.length === 0) {
+            const msg = searchProdutoInput.value ? "Nenhum produto encontrado." : "Nenhum produto cadastrado.";
+            // Corrigido para 5 colunas
+            productsTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">${msg}</td></tr>`;
             return;
         }
-        pedidos.forEach(pedido => {
+        produtos.forEach(produto => {
             const tr = document.createElement('tr');
             tr.className = 'border-b border-gray-700 hover:bg-[#1e1e2d]';
 
-            let dataFormatada = 'N/A';
-            if (pedido.dataPedido) {
-                try {
-                    dataFormatada = new Date(pedido.dataPedido).toLocaleDateString('pt-BR', {
-                        day: '2-digit', month: '2-digit', year: 'numeric'
-                    });
-                } catch (e) { }
-            }
+            const statusClass = produto.status === 'Em Estoque' ? 'text-green-500' : 'text-red-500';
+            const statusHtml = `<span class="font-bold ${statusClass}">${produto.status}</span>`;
 
-            const statusLower = (pedido.status || '').toLowerCase();
-            let statusHtml = '';
-            if (statusLower === 'concluído') {
-                statusHtml = '<span class="bg-green-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Concluído</span>';
-            } else if (statusLower === 'pendente') {
-                statusHtml = '<span class="bg-yellow-500 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Pendente</span>';
-            } else if (statusLower === 'cancelado') {
-                statusHtml = '<span class="bg-red-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Cancelado</span>';
-            } else {
-                statusHtml = `<span class="bg-gray-500 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">${pedido.status || 'N/A'}</span>`;
-            }
-
-            tr.innerHTML = `
-                <td class="p-3 font-medium text-white">${pedido.id}</td>
-                <td class="p-3 hidden sm:table-cell">${pedido.nomeCliente || 'N/A'}</td>
-                <td class="p-3 hidden md:table-cell">${dataFormatada}</td>
-                <td class="p-3">${statusHtml}</td>
-                <td class="p-3 font-medium text-white">${formatarMoeda(pedido.valorTotal)}</td>
+            // Ações (Sem verificação de role)
+            const acoesHtml = `
+                <button data-id="${produto.id}" data-nome="${produto.nome}" class="text-blue-500 hover:text-blue-400 mr-2 edit-btn" title="Editar">
+                    <i class="fa fa-edit"></i>
+                </button>
+                <button data-id="${produto.id}" data-nome="${produto.nome}" class="text-red-500 hover:text-red-400 delete-btn" title="Excluir">
+                    <i class="fa fa-trash-alt"></i>
+                </button>
             `;
-            pedidosTableBody.appendChild(tr);
+
+            // Layout da tabela (Corrigido para 5 colunas + Ações)
+            tr.innerHTML = `
+                <td class="p-3 hidden sm:table-cell">${produto.nome || 'N/A'}</td>
+                <td class="p-3 sm:hidden">${produto.nome || 'N/A'}</td>
+                <td class="p-3 hidden sm:table-cell">${produto.quantidade ?? 'N/A'}</td>
+                <td class="p-3 sm:hidden">${produto.quantidade ?? 'N/A'}</td>
+                <td class="p-3">${statusHtml}</td> 
+                <td class="p-3 hidden md:table-cell">${formatarMoeda(produto.precoVenda)}</td>
+                <td class="p-3">${acoesHtml}</td>
+            `;
+            productsTableBody.appendChild(tr);
         });
     }
-    async function carregarPedidosTabela() {
-        if (!pedidosTableBody) return;
-        pedidosTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">Carregando...</td></tr>`;
+
+    async function carregarProdutosTabela() {
+        if (!productsTableBody) return;
+        productsTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">Carregando...</td></tr>`;
         try {
-            const pedidos = await getPedidos();
-            todosOsPedidos = pedidos;
-            renderizarTabelaPedidos(todosOsPedidos);
+            const produtos = await getProdutos();
+            todosOsProdutos = produtos;
+            renderizarTabelaProdutos(todosOsProdutos);
+
+            // Popula dropdowns
+            const optionHtml = produtos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+            pedidoItemProdutoSelect.innerHTML = '<option value="">Selecione um produto</option>' + optionHtml;
+            nfItemProdutoSelect.innerHTML = '<option value="">Selecione um produto</option>' + optionHtml;
         } catch (error) {
-            console.error("Erro ao carregar pedidos:", error);
-            pedidosTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-red-500">Falha ao carregar pedidos.</td></tr>`;
+            console.error("Erro ao carregar produtos:", error);
+            productsTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-red-500">Falha ao carregar produtos.</td></tr>`;
         }
     }
-    searchPedidoInput?.addEventListener('input', () => {
-        const searchTerm = searchPedidoInput.value.toLowerCase();
-        const filtrados = todosOsPedidos.filter(p =>
-            (p.nomeCliente || '').toLowerCase().includes(searchTerm) ||
-            (p.status || '').toLowerCase().includes(searchTerm)
+
+    searchProdutoInput?.addEventListener('input', () => {
+        const searchTerm = searchProdutoInput.value.toLowerCase();
+        const filtrados = todosOsProdutos.filter(p =>
+            p.nome.toLowerCase().includes(searchTerm)
         );
-        renderizarTabelaPedidos(filtrados);
+        renderizarTabelaProdutos(filtrados);
     });
 
     // --- NOTAS FISCAIS ---
@@ -777,17 +805,12 @@ document.addEventListener('DOMContentLoaded', () => {
         notas.forEach(nota => {
             const tr = document.createElement('tr');
             tr.className = 'border-b border-gray-700 hover:bg-[#1e1e2d]';
-            let dataFormatada = 'N/A';
-            if (nota.dataEmissao) {
-                try {
-                    dataFormatada = new Date(nota.dataEmissao).toLocaleDateString('pt-BR', {
-                        day: '2-digit', month: '2-digit', year: 'numeric'
-                    });
-                } catch (e) { }
-            }
+            const dataFormatada = formatarData(nota.dataEmissao);
             const valorFormatado = formatarMoeda(nota.valorTotal);
+
+            // Botão de editar (olho) e deletar
             const acoesHtml = `
-                <button data-id="${nota.id}" class="text-blue-400 hover:text-blue-300 mr-3 edit-btn" title="Exibir/Editar">
+                <button data-id="${nota.id}" class="text-blue-400 hover:text-blue-300 mr-3 edit-btn" title="Exibir Detalhes">
                     <i class="fa fa-eye"></i>
                 </button>
                 <button data-id="${nota.id}" data-nome="Nota ${nota.numeroNota}" class="text-red-500 hover:text-red-400 delete-btn" title="Excluir">
@@ -804,10 +827,13 @@ document.addEventListener('DOMContentLoaded', () => {
             notasFiscaisTableBody.appendChild(tr);
         });
     }
+
     async function carregarNotasFiscaisTabela() {
         if (!notasFiscaisTableBody) return;
         notasFiscaisTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">Carregando...</td></tr>`;
         try {
+            // (Aviso: A função getNotasFiscais() no api.js ainda retorna []
+            // até implementarmos o GET /api/NotaFiscalCompra no backend)
             const notas = await getNotasFiscais();
             todasAsNotasFiscais = notas;
             renderizarTabelaNotasFiscais(todasAsNotasFiscais);
@@ -816,6 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
             notasFiscaisTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-red-500">Falha ao carregar notas fiscais.</td></tr>`;
         }
     }
+
     searchNotaInput?.addEventListener('input', () => {
         const searchTerm = searchNotaInput.value.toLowerCase();
         const filtrados = todasAsNotasFiscais.filter(n =>
@@ -858,7 +885,8 @@ document.addEventListener('DOMContentLoaded', () => {
             productIdInput.value = produto.id;
             productNomeInput.value = produto.nome;
             productQuantidadeInput.value = produto.quantidade;
-            productPrecoInput.value = produto.precoVenda; // Usa precoVenda
+            productPrecoInput.value = produto.precoVenda;
+            productCustoInput.value = produto.precoCusto; // <-- ADICIONADO
             productTipoInput.value = produto.tipo;
         } else {
             productModalTitle.textContent = 'Adicionar Novo Produto';
@@ -883,10 +911,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const produto = {
             nome: productNomeInput.value,
             quantidade: parseInt(productQuantidadeInput.value),
-            precoVenda: parseFloat(productPrecoInput.value), // Mapeado para precoVenda
-            tipo: productTipoInput.value,
-            // Mantém o precoCusto original se estiver editando, ou 0 se for novo
-            precoCusto: itemParaEditar ? itemParaEditar.precoCusto : 0
+            precoVenda: parseFloat(productPrecoInput.value),
+            precoCusto: parseFloat(productCustoInput.value) || 0,
+            tipo: productTipoInput.value
         };
         try {
             if (itemParaEditar) {
@@ -1027,7 +1054,6 @@ document.addEventListener('DOMContentLoaded', () => {
             usuarioIdInput.value = usuario.id;
             usuarioNomeInput.value = usuario.nome;
             usuarioEmailInput.value = usuario.email;
-            // Mapeia 'tipo' da API (Admin/Funcionario) para 'value' do select (admin/user)
             usuarioRoleInput.value = (usuario.tipo || 'Funcionario').toLowerCase() === 'admin' ? 'admin' : 'user';
         } else {
             usuarioModalTitle.textContent = 'Cadastrar Novo Usuário';
@@ -1394,22 +1420,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // --- 9. LÓGICA DE AÇÃO (Editar/Excluir Genérico) (CORRIGIDO) ---
+
+
+    // --- 9. LÓGICA DE AÇÃO (Editar/Excluir Genérico) ---
     productsTableBody?.addEventListener('click', (e) => handleTableClick(e, 'produto'));
     clientesTableBody?.addEventListener('click', (e) => handleTableClick(e, 'cliente'));
     fornecedoresTableBody?.addEventListener('click', (e) => handleTableClick(e, 'fornecedor'));
     usuariosTableBody?.addEventListener('click', (e) => handleTableClick(e, 'usuario'));
     notasFiscaisTableBody?.addEventListener('click', (e) => handleTableClick(e, 'nota-fiscal'));
+    // (NOVO) Listener para clique na linha do pedido
+    pedidosTableBody?.addEventListener('click', (e) => {
+        const row = e.target.closest('.pedido-row-clickable');
+        if (row) {
+            const id = row.dataset.id;
+            handleTableClick(e, 'pedido', id);
+        }
+    });
 
-    async function handleTableClick(e, tipo) {
-        // (Lógica de 'userRole' REMOVIDA)
 
+    async function handleTableClick(e, tipo, idOverride = null) {
         const editBtn = e.target.closest('.edit-btn');
         const deleteBtn = e.target.closest('.delete-btn');
+        // (ATUALIZADO) Pega o ID da linha (clique) ou do botão
+        const id = idOverride || editBtn?.dataset.id || deleteBtn?.dataset.id;
+
+        if (!id) return;
+
+        // (NOVO) Lógica para abrir modal de detalhe do pedido
+        if (tipo === 'pedido' && !editBtn && !deleteBtn) {
+            try {
+                const pedido = await getPedido(id);
+                abrirModalDetalhePedido(pedido);
+            } catch (error) {
+                alert(`Não foi possível carregar os detalhes do pedido: ${error.message}`);
+            }
+            return;
+        }
 
         if (editBtn) {
-            const id = editBtn.dataset.id;
-            if (!id) return;
             try {
                 if (tipo === 'produto') {
                     const produto = await getProduto(id);
@@ -1434,7 +1482,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (deleteBtn) {
             itemParaExcluir = {
-                id: deleteBtn.dataset.id,
+                id: id,
                 tipo: tipo,
                 nome: deleteBtn.dataset.nome || 'este item'
             };
