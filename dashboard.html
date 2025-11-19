@@ -57,45 +57,89 @@
 
             <nav class="flex-grow">
                 <ul>
-                    <li id="nav-inicio-btn" class="cursor-pointer"><a href="#"
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white bg-purple-600 text-white"><i
-                                class="fa fa-home"></i> Início</a></li>
+                    <!-- GRUPO 1: Início e Relatórios -->
+                    <li id="nav-inicio-btn" class="cursor-pointer">
+                        <a href="#"
+                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white bg-purple-600 text-white">
+                            <i class="fa fa-home"></i> Início
+                        </a>
+                    </li>
 
-                    <li id="nav-relatorios-btn" class="cursor-pointer"><a
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
-                                class="fa fa-chart-pie"></i> Relatórios</a></li>
+                    <li id="nav-relatorios-btn" class="cursor-pointer">
+                        <a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white">
+                            <i class="fa fa-chart-pie"></i> Relatórios
+                        </a>
+                    </li>
 
-                    <li id="nav-produtos-btn" class="cursor-pointer"><a href="#"
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
-                                class="fa fa-chart-bar"></i> Produtos</a></li>
+                    <!-- DIVISÓRIA 1 -->
+                    <li class="my-3 px-3">
+                        <div class="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent"></div>
+                    </li>
 
-                    <li id="open-pedido-modal-btn" class="cursor-pointer"><a
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
-                                class="fa fa-truck-loading"></i> Gerar Pedido</a></li>
+                    <!-- GRUPO 2: Produtos e Pedidos -->
+                    <li id="nav-produtos-btn" class="cursor-pointer">
+                        <a href="#"
+                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white">
+                            <i class="fa fa-chart-bar"></i> Produtos
+                        </a>
+                    </li>
 
-                    <li id="nav-pedidos-btn" class="cursor-pointer"><a
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
-                                class="fa fa-clipboard-list"></i> Listar Pedidos</a></li>
+                    <li id="open-pedido-modal-btn" class="cursor-pointer">
+                        <a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white">
+                            <i class="fa fa-truck-loading"></i> Gerar Pedido
+                        </a>
+                    </li>
 
-                    <li id="open-nota-fiscal-modal-btn" class="cursor-pointer"><a
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
-                                class="fa fa-file-invoice"></i> Lançar Nota Fiscal</a></li>
+                    <li id="nav-pedidos-btn" class="cursor-pointer">
+                        <a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white">
+                            <i class="fa fa-clipboard-list"></i> Listar Pedidos
+                        </a>
+                    </li>
 
-                    <li id="nav-notas-fiscais-btn" class="cursor-pointer"><a
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
-                                class="fa fa-search-dollar"></i> Listar Notas Fiscais</a></li>
+                    <!-- DIVISÓRIA 2 -->
+                    <li class="my-3 px-3">
+                        <div class="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent"></div>
+                    </li>
 
-                    <li id="nav-clientes-btn" class="cursor-pointer"><a
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
-                                class="fa fa-users-cog"></i> Clientes</a></li>
+                    <!-- GRUPO 3: Notas Fiscais -->
+                    <li id="open-nota-fiscal-modal-btn" class="cursor-pointer">
+                        <a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white">
+                            <i class="fa fa-file-invoice"></i> Lançar Nota Fiscal
+                        </a>
+                    </li>
 
-                    <li id="nav-fornecedores-btn" class="cursor-pointer"><a
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
-                                class="fa fa-truck-field"></i> Fornecedores</a></li>
+                    <li id="nav-notas-fiscais-btn" class="cursor-pointer">
+                        <a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white">
+                            <i class="fa fa-search-dollar"></i> Listar Notas Fiscais
+                        </a>
+                    </li>
 
-                    <li id="nav-usuarios-btn" class="cursor-pointer"><a
-                            class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white"><i
-                                class="fa fa-user-edit"></i> Usuários</a></li>
+                    <!-- DIVISÓRIA 3 -->
+                    <li class="my-3 px-3">
+                        <div class="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent"></div>
+                    </li>
+
+                    <!-- GRUPO 4: Cadastros -->
+                    <li id="nav-clientes-btn" class="cursor-pointer">
+                        <a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white">
+                            <i class="fa fa-users-cog"></i> Clientes
+                        </a>
+                    </li>
+
+                    <li id="nav-fornecedores-btn" class="cursor-pointer">
+                        <a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white">
+                            <i class="fa fa-truck-field"></i> Fornecedores
+                        </a>
+                    </li>
+
+                    <li id="nav-usuarios-btn" class="cursor-pointer">
+                        <a class="flex items-center gap-4 px-3 py-3 rounded-md hover:bg-purple-600 hover:text-white">
+                            <i class="fa fa-user-edit"></i> Usuários
+                        </a>
+                    </li>
+                    <li class="my-3 px-3">
+                        <div class="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent"></div>
+                    </li>
                 </ul>
             </nav>
             <div>
@@ -141,18 +185,47 @@
                     <h2 class="text-3xl font-bold text-white mb-6">Relatórios Gerenciais</h2>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Gráfico de Vendas (Linha) -->
                         <div class="bg-[#1e1e2d] p-6 rounded-lg shadow-md border border-gray-700 lg:col-span-2">
                             <h3 class="text-xl font-semibold mb-4 text-white">Vendas (Últimos 6 Meses)</h3>
                             <canvas id="vendasChart"></canvas>
                         </div>
+
+                        <!-- Top 5 Itens -->
                         <div class="bg-[#1e1e2d] p-6 rounded-lg shadow-md border border-gray-700">
                             <h3 class="text-xl font-semibold mb-4 text-white">Top 5 Itens Mais Vendidos</h3>
                             <canvas id="topItensChart"></canvas>
                         </div>
+
+                        <!-- Top 5 Clientes -->
                         <div class="bg-[#1e1e2d] p-6 rounded-lg shadow-md border border-gray-700">
                             <h3 class="text-xl font-semibold mb-4 text-white">Top 5 Clientes</h3>
                             <div class="max-w-xs mx-auto">
                                 <canvas id="topClientesChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- NOVO: Itens Parados -->
+                        <div class="bg-[#1e1e2d] p-6 rounded-lg shadow-md border border-gray-700 lg:col-span-2">
+                            <h3 class="text-xl font-semibold mb-4 text-white">
+                                ⚠️ Itens Parados (Sem Venda há mais de 10 dias)
+                            </h3>
+                            <div class="overflow-y-auto max-h-96">
+                                <table class="w-full text-left text-gray-400">
+                                    <thead class="bg-[#161625] text-white sticky top-0">
+                                        <tr>
+                                            <th class="p-3">Produto</th>
+                                            <th class="p-3 text-center">Quantidade</th>
+                                            <th class="p-3 text-center">Última Venda</th>
+                                            <th class="p-3 text-center">Dias Parado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itens-parados-tbody">
+                                        <tr>
+                                            <td colspan="4" class="p-3 text-center text-gray-500">Carregando...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -306,6 +379,10 @@
                         <button data-status="Pendente"
                             class="pedido-filtro-btn px-4 py-2 text-sm font-medium rounded-md">
                             Pendentes
+                        </button>
+                        <button data-status="Em Preparação"
+                            class="pedido-filtro-btn px-4 py-2 text-sm font-medium rounded-md">
+                            Em Preparação
                         </button>
                         <button data-status="Concluído"
                             class="pedido-filtro-btn px-4 py-2 text-sm font-medium rounded-md">
@@ -694,20 +771,35 @@
 
             <div id="nf-tab-xml-content" class="nf-tab-content">
                 <form id="nf-xml-form">
-                    <p class="text-gray-400 mb-4">Faça o upload do arquivo XML da sua Nota Fiscal de Compra. O sistema
-                        lerá os dados e atualizará o estoque automaticamente.</p>
+                    <p class="text-gray-400 mb-4">
+                        Faça o upload do arquivo XML da sua Nota Fiscal de Compra.
+                        O sistema lerá os dados e atualizará o estoque automaticamente.
+                    </p>
+
                     <div class="mb-4">
-                        <label for="nf-xml-file" class="block mb-2 text-sm text-gray-400">Arquivo XML</label>
+                        <label for="nf-xml-file" class="block mb-2 text-sm text-gray-400">
+                            Arquivo XML da NFe
+                        </label>
                         <input type="file" id="nf-xml-file" class="w-full text-gray-400 file:mr-4 file:py-2 file:px-4
-                                file:rounded-md file:border-0 file:text-sm file:font-semibold
-                                file:bg-purple-600 file:text-white hover:file:bg-purple-700" accept=".xml, text/xml"
-                            required>
+                       file:rounded-md file:border-0 file:text-sm file:font-semibold
+                       file:bg-purple-600 file:text-white hover:file:bg-purple-700" accept=".xml, text/xml" required>
                     </div>
+
+                    <div class="bg-yellow-900/30 border border-yellow-600 rounded-md p-4 mb-4">
+                        <p class="text-yellow-400 text-sm">
+                            ⚠️ <strong>Atenção:</strong> O fornecedor e os produtos devem estar
+                            cadastrados no sistema antes de importar o XML.
+                        </p>
+                    </div>
+
                     <div class="flex justify-end gap-4 mt-8">
                         <button type="button" id="cancel-nota-fiscal-xml-btn"
-                            class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700">Importar
-                            XML</button>
+                            class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700">
+                            Importar XML
+                        </button>
                     </div>
                 </form>
             </div>

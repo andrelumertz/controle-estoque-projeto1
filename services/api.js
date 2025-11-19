@@ -170,7 +170,12 @@ export async function deleteNotaFiscal(id) {
   console.warn("API: O endpoint DELETE /api/NotaFiscalCompra/{id} não foi implementado.");
 }
 export async function addNotaFiscalXml(formData) {
-  console.warn("API: O endpoint /NotaFiscalCompra/UploadXML não foi implementado.");
+  const response = await api.post('/NotaFiscalCompra/UploadXML', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data;
 }
 
 /**
@@ -213,5 +218,10 @@ export async function getTop5Produtos() {
 }
 export async function getTop5Clientes() {
   const response = await api.get('/Relatorios/vendas/top5clientes');
+  return response.data;
+}
+
+export async function getItensParados() {
+  const response = await api.get('/Relatorios/estoque/itensparados');
   return response.data;
 }

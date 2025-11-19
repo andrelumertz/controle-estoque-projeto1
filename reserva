@@ -11,8 +11,7 @@ import {
     getVisaoGeralEstoque,
     getVendasPorMes,
     getTop5Produtos,
-    getTop5Clientes,
-    getItensParados
+    getTop5Clientes
 } from './services/api.js';
 
 
@@ -302,8 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const [vendasData, topProdutosData, topClientesData] = await Promise.all([
                 getVendasPorMes(),
                 getTop5Produtos(),
-                getTop5Clientes(),
-                getItensParados()
+                getTop5Clientes()
             ]);
 
             // Renderiza os gráficos com os dados
@@ -490,63 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    /**
-     * Renderiza a tabela de Itens Parados
-     */
-    function renderizarTabelaItensParados(data) {
-        const tbody = document.getElementById('itens-parados-tbody');
 
-        if (!tbody) {
-            console.error("Elemento 'itens-parados-tbody' não encontrado!");
-            return;
-        }
-
-        tbody.innerHTML = '';
-
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-green-500">✅ Não há itens parados no momento!</td></tr>';
-            return;
-        }
-
-        data.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.className = 'border-b border-gray-700 hover:bg-[#161625]';
-
-            // Calcula dias parados
-            let diasParado = 'Nunca vendido';
-            let corDias = 'text-red-500';
-
-            if (item.dataUltimaVenda) {
-                const dataVenda = new Date(item.dataUltimaVenda);
-                const hoje = new Date();
-                const diffTime = Math.abs(hoje - dataVenda);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                diasParado = `${diffDays} dias`;
-
-                if (diffDays >= 30) {
-                    corDias = 'text-red-600 font-bold';
-                } else if (diffDays >= 20) {
-                    corDias = 'text-orange-500';
-                } else {
-                    corDias = 'text-yellow-500';
-                }
-            }
-
-            const ultimaVenda = item.dataUltimaVenda
-                ? formatarData(item.dataUltimaVenda)
-                : '<span class="text-red-500">Nunca</span>';
-
-            tr.innerHTML = `
-            <td class="p-3 text-white">${item.nome}</td>
-            <td class="p-3 text-center font-bold text-white">${item.quantidade}</td>
-            <td class="p-3 text-center">${ultimaVenda}</td>
-            <td class="p-3 text-center ${corDias} font-bold">${diasParado}</td>
-        `;
-
-            tbody.appendChild(tr);
-        });
-    }
 
     // --- 8. FUNÇÕES DE DADOS (Carregar e Renderizar Tabelas) ---
 
@@ -1473,100 +1415,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     nfXmlForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        const fileInput = document.getElementById('nf-xml-file');
-        const file = fileInput?.files[0];
-
-        if (!file) {
-            alert('Por favor, selecione um arquivo XML.');
-            return;
-        }
-
-        // Valida se é realmente um arquivo XML
-        if (!file.name.toLowerCase().endsWith('.xml')) {
-            alert('Por favor, selecione um arquivo XML válido.');
-            return;
-        }
-
-        const btn = nfXmlForm.querySelector('button[type="submit"]');
-        const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'Importando XML...';
-
-        try {
-            // Cria o FormData para enviar o arquivo
-            const formData = new FormData();
-            formData.append('arquivo', file); // Nome deve ser 'arquivo' (igual ao parâmetro do backend)
-
-            // Envia para a API
-            const resultado = await addNotaFiscalXml(formData);
-
-            // Monta mensagem de sucesso detalhada
-            let mensagemSucesso = `✅ ${resultado.mensagem}\n\n`;
-            mensagemSucesso += `📄 Número da Nota: ${resultado.numeroNota}\n`;
-            mensagemSucesso += `🏢 Fornecedor: ${resultado.fornecedor}\n`;
-            mensagemSucesso += `💰 Valor Total: ${formatarMoeda(resultado.valorTotal)}\n`;
-            mensagemSucesso += `📦 Total de Itens: ${resultado.totalItens}`;
-
-            alert(mensagemSucesso);
-
-            fecharModalNotaFiscal();
-
-            // Recarrega os dados
-            await carregarProdutosTabela();
-            await carregarVisaoGeralEstoque();
-            await carregarNotasFiscaisTabela();
-
-        } catch (error) {
-            console.error('Erro ao importar XML:', error);
-
-            // Exibe mensagem de erro mais detalhada
-            let mensagemErro = '❌ Falha ao importar XML:\n\n';
-
-            if (error.response?.data) {
-                // Se o backend retornou uma mensagem específica
-                if (typeof error.response.data === 'string') {
-                    mensagemErro += error.response.data;
-                } else if (error.response.data.message) {
-                    mensagemErro += error.response.data.message;
-                } else {
-                    mensagemErro += JSON.stringify(error.response.data);
-                }
-            } else {
-                mensagemErro += error.message || 'Erro desconhecido ao importar XML';
-            }
-
-            alert(mensagemErro);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = originalText;
-            fileInput.value = ''; // Limpa o input de arquivo
-        }
+        alert("Importação de XML ainda não implementada.");
+        // (A API não tem o endpoint 'UploadXML' pronto)
     });
-    // Preview do arquivo XML selecionado
-    const nfXmlFileInput = document.getElementById('nf-xml-file');
 
-    nfXmlFileInput?.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        const label = nfXmlFileInput.closest('.mb-4')?.querySelector('label');
-
-        if (file) {
-            const tamanhoKB = (file.size / 1024).toFixed(2);
-            const info = document.createElement('p');
-            info.className = 'text-xs text-green-400 mt-2';
-            info.id = 'nf-xml-file-info';
-            info.innerHTML = `✅ ${file.name} (${tamanhoKB} KB)`;
-
-            // Remove info anterior se existir
-            const infoAnterior = document.getElementById('nf-xml-file-info');
-            if (infoAnterior) {
-                infoAnterior.remove();
-            }
-
-            // Adiciona a nova info
-            nfXmlFileInput.parentElement.appendChild(info);
-        }
-    });
 
 
 
@@ -1721,53 +1573,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Preenche os dados básicos
         pedidoDetalheIdInput.value = pedido.id;
-        pedidoDetalheCliente.textContent = pedido.cliente?.nome || pedido.nomeCliente || 'N/A';
+        pedidoDetalheCliente.textContent = pedido.nomeCliente || 'N/A';
         pedidoDetalheData.textContent = formatarData(pedido.dataPedido);
+        pedidoDetalheValor.textContent = formatarMoeda(pedido.valorTotal);
         pedidoDetalheStatusSelect.value = pedido.status || 'Pendente';
 
         // Renderiza os itens
         pedidoDetalheItensTbody.innerHTML = '';
-
-        const itens = pedido.pedidoItens || [];
-
-        if (itens && itens.length > 0) {
-            let valorTotalCalculado = 0;
-
-            itens.forEach(item => {
+        if (pedido.itens && pedido.itens.length > 0) {
+            pedido.itens.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-gray-700';
 
-                // Pega o nome do produto
-                const nomeProduto = item.produto?.nome || item.nomeProduto || 'Produto Desconhecido';
-
-                // CORRIGIDO: Pega o preço do produto
-                const precoUnit = item.precoUnitario || item.produto?.precoVenda || 0;
-                const quantidade = item.quantidade || 0;
-                const subtotal = quantidade * precoUnit;
-
-                valorTotalCalculado += subtotal;
+                const precoUnit = item.precoUnitario || 0;
+                const subtotal = item.quantidade * precoUnit;
 
                 tr.innerHTML = `
-                <td class="p-3">${nomeProduto}</td>
-                <td class="p-3">${quantidade}</td>
-                <td class="p-3">${formatarMoeda(precoUnit)}</td>
-                <td class="p-3">${formatarMoeda(subtotal)}</td>
-            `;
+                    <td class="p-3">${item.nomeProduto || 'Produto Desconhecido'}</td>
+                    <td class="p-3">${item.quantidade}</td>
+                    <td class="p-3">${formatarMoeda(precoUnit)}</td>
+                    <td class="p-3">${formatarMoeda(subtotal)}</td>
+                `;
                 pedidoDetalheItensTbody.appendChild(tr);
             });
-
-            // Atualiza o valor total calculado
-            pedidoDetalheValor.textContent = formatarMoeda(valorTotalCalculado);
-
         } else {
             pedidoDetalheItensTbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-500">Nenhum item encontrado.</td></tr>';
-            pedidoDetalheValor.textContent = formatarMoeda(0);
         }
 
         // Abre o modal
         pedidoDetalheModal.classList.remove('hidden');
         pedidoDetalheModal.classList.add('flex');
     }
+
     function fecharModalDetalhePedido() {
         if (pedidoDetalheModal) {
             pedidoDetalheModal.classList.add('hidden');
