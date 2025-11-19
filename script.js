@@ -1,4 +1,11 @@
 // script.js (Completo, com Gráficos e Sem Roles)
+
+/**
+ * @fileoverview Módulo principal da Dashboard de Controle de Estoque.
+ * Este arquivo gerencia a navegação, o carregamento de dados via API,
+ * a renderização das tabelas e gráficos, e a lógica de modais (CRUD).
+ */
+
 import {
     getProdutos, addProduto, updateProduto, deleteProduto, getProduto,
     getClientes, getCliente, addCliente, updateCliente, deleteCliente,
@@ -22,12 +29,25 @@ let topItensChartInstance = null;
 let topClientesChartInstance = null;
 
 // --- Função Helper para formatar Moeda ---
+/**
+ * Formata um valor numérico para o padrão monetário brasileiro (BRL).
+ * Se o valor não for um número, retorna 'R$ 0,00'.
+ *
+ * @param {number} valor - O valor numérico a ser formatado.
+ * @returns {string} O valor formatado como moeda (ex: R$ 1.000,00).
+ */
 function formatarMoeda(valor) {
     if (typeof valor !== 'number') {
         valor = 0;
     }
     return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
+
+/**
+ * Formata uma string de data para o padrão 'dd/mm/yyyy'.
+ * @param {string} dataString - A string de data (ex: '2025-11-19T03:00:00Z').
+ * @returns {string} A data formatada ou 'N/A'/'Data Inválida'.
+ */
 function formatarData(dataString) {
     if (!dataString) return 'N/A';
     try {
@@ -226,8 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. applyUserRoleLimits() REMOVIDA ---
 
-
     // --- 5. EVENT LISTENERS GLOBAIS (Sidebar, Logout) ---
+    // ... (Lógica de toggle da sidebar e logout) ...
     menuButton?.addEventListener('click', () => {
         sidebar?.classList.toggle('-translate-x-full');
         mainContent?.classList.toggle('md:ml-64');
@@ -244,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- 6. LÓGICA DE NAVEGAÇÃO ENTRE TELAS (CORRIGIDA) ---
+    // ... (Funções setAtivo e mostrarTela, e listeners de navegação) ...
     const navButtons = [navInicioBtn, navRelatoriosBtn, navProdutosBtn, navPedidosBtn, navClientesBtn, navFornecedoresBtn, navUsuariosBtn, navNotasFiscaisBtn];
     const contentScreens = [inicioContent, relatoriosContent, produtosContent, pedidosContent, clientesContent, fornecedoresContent, usuariosContent, notasFiscaisContent];
 
@@ -294,7 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 7. (NOVO) LÓGICA DE RELATÓRIOS E GRÁFICOS ---
 
     /**
-     * Função principal que busca dados e chama as funções de renderização de gráficos.
+     * Função principal que busca dados de relatórios e renderiza os gráficos.
+     * Chama as funções da API em paralelo.
+     * @returns {Promise<void>}
      */
     async function carregarRelatorios() {
         try {
@@ -320,7 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Renderiza o gráfico de Vendas por Mês (Gráfico de Linha)
      */
-
+    // ... (Definição de cores e funções renderizarChartVendas, renderizarChartTopItens, renderizarChartTopClientes, renderizarTabelaItensParados) ...
     const corTextoGrafico = '#9CA3AF'; // Cinza claro (para texto/ticks)
     const corGridGrafico = '#374151';   // Cinza escuro (para linhas de grade)
     const corBordaPizza = '#1e1e2d';    // Cor de fundo (para borda da pizza)
@@ -550,7 +573,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 8. FUNÇÕES DE DADOS (Carregar e Renderizar Tabelas) ---
 
-    // --- PRODUTOS (CORRIGIDO) ---
+    // --- PEDIDOS ---
+    /**
+     * Renderiza o corpo da tabela de pedidos com base nos dados fornecidos.
+     * @param {Array<Object>} pedidos - Array de objetos Pedido.
+     * @returns {void}
+     */
     function renderizarTabelaPedidos(pedidos) {
         if (!pedidosTableBody) return;
         pedidosTableBody.innerHTML = '';
@@ -594,7 +622,12 @@ document.addEventListener('DOMContentLoaded', () => {
             pedidosTableBody.appendChild(tr);
         });
     }
-
+    /**
+     * Busca pedidos na API (opcionalmente filtrando por status) e atualiza a tabela.
+     * Salva o resultado em `todosOsPedidos`.
+     * @param {string} [status=null] - Status do pedido para filtragem.
+     * @returns {Promise<void>}
+     */
     // (ATUALIZADO) Aceita status
     async function carregarPedidosTabela(status = null) {
         if (!pedidosTableBody) return;
@@ -911,6 +944,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- VISÃO GERAL (CARDS) (CORRIGIDO) ---
+    /**
+     * Busca os dados de visão geral do estoque e atualiza os cards no dashboard.
+     * @returns {Promise<void>}
+     */
     async function carregarVisaoGeralEstoque() {
         if (!totalItensSpan || !valorTotalVendaSpan || !valorTotalCustoSpan) return;
         totalItensSpan.textContent = '...';
@@ -935,6 +972,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 8. LÓGICA DOS MODAIS ---
 
     // --- Modal de PRODUTO (Adicionar/Editar) (CORRIGIDO) ---
+    /**
+     * Abre o modal de Produto, preenchendo os campos se for para edição.
+     * @param {Object} [produto=null] - O objeto Produto a ser editado.
+     * @returns {void}
+     */
     function abrirModalProduto(produto = null) {
         itemParaEditar = produto;
         productForm.reset();
@@ -1166,7 +1208,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Modal de PEDIDO (Gerar) (CORRIGIDO) ---
+    // --- Modal de PEDIDO (Gerar) ---
+    /**
+     * Abre o modal de geração de novo pedido, limpando o estado `pedidoItems`.
+     * @returns {void}
+     */-
     function abrirModalPedido() {
         if (!pedidoModal || !pedidoForm) {
             console.error("Erro Fatal: O HTML do Modal de Pedido não foi encontrado.");
@@ -1188,6 +1234,10 @@ document.addEventListener('DOMContentLoaded', () => {
     closePedidoModalBtn?.addEventListener('click', fecharModalPedido);
     cancelPedidoBtn?.addEventListener('click', fecharModalPedido);
 
+    /**
+     * Renderiza os itens atuais do pedido no corpo da tabela do modal e calcula o valor total.
+     * @returns {void}
+     */
     function renderizarItensPedido() {
         pedidoItemsListBody.innerHTML = '';
         let valorTotalPedido = 0;
@@ -1285,7 +1335,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Modal de NOTA FISCAL (Lançar/Editar) (CORRIGIDO) ---
+    // --- Modal de NOTA FISCAL (Lançar/Editar/XML) ---
+    /**
+     * Abre o modal de Nota Fiscal (para lançamento manual, importação XML ou visualização).
+     * @param {Object} [nota=null] - O objeto Nota Fiscal para visualização.
+     * @returns {void}
+     */
     function abrirModalNotaFiscal(nota = null) {
         itemParaEditar = nota;
         nfManualForm.reset();
@@ -1355,7 +1410,10 @@ document.addEventListener('DOMContentLoaded', () => {
     nfTabManualBtn?.addEventListener('click', () => mostrarAbaNF('manual'));
     nfTabXmlBtn?.addEventListener('click', () => mostrarAbaNF('xml'));
 
-    // Lógica da Aba MANUAL
+    /**
+     * Renderiza os itens da Nota Fiscal no corpo da tabela do modal e calcula o valor total.
+     * @returns {void}
+     */
     function renderizarItensNF() {
         if (!nfItemsListBody) return;
         nfItemsListBody.innerHTML = '';
@@ -1571,6 +1629,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- 9. LÓGICA DE AÇÃO (Editar/Excluir Genérico) ---
+
+    /**
+     * Função genérica que trata o clique em botões de ação (Editar/Deletar)
+     * nas tabelas, buscando o item na API e abrindo o modal correspondente.
+     * @param {Event} e - O evento de clique.
+     * @param {string} tipo - O tipo do item ('produto', 'cliente', etc.).
+     * @param {string} [idOverride=null] - ID opcional, usado para cliques em linha (como em Pedidos).
+     * @returns {Promise<void>}
+     */
     productsTableBody?.addEventListener('click', (e) => handleTableClick(e, 'produto'));
     clientesTableBody?.addEventListener('click', (e) => handleTableClick(e, 'cliente'));
     fornecedoresTableBody?.addEventListener('click', (e) => handleTableClick(e, 'fornecedor'));
@@ -1638,7 +1705,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Modal de EXCLUSÃO (Genérico - CORRIGIDO para Soft Delete) ---
+    // --- Modal de EXCLUSÃO (Genérico - Soft Delete) ---
+    /**
+     * Abre o modal de confirmação de exclusão/inativação, ajustando a mensagem
+     * e o botão de acordo com o tipo do item (`itemParaExcluir.tipo`).
+     * @returns {void}
+     */
     function abrirModalExclusao() {
         // (CORRIGIDO) Muda a mensagem para soft delete
         if (itemParaExcluir.tipo === 'cliente' || itemParaExcluir.tipo === 'usuario') {
@@ -1713,6 +1785,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const pedidoDetalheStatusSelect = document.getElementById('pedido-detalhe-status-select');
     const pedidoDetalheSalvarStatusBtn = document.getElementById('pedido-detalhe-salvar-status-btn');
 
+    // --- Modal de DETALHE DO PEDIDO ---
+    /**
+     * Abre o modal de detalhes do pedido, preenchendo as informações e listando os itens.
+     * Permite a alteração de status.
+     * @param {Object} pedido - O objeto Pedido completo retornado pela API.
+     * @returns {void}
+     */
     function abrirModalDetalhePedido(pedido) {
         if (!pedidoDetalheModal) {
             console.error("Modal de detalhe do pedido não encontrado!");
@@ -1833,6 +1912,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 10. INICIALIZAÇÃO (CORRIGIDO) ---
+    /**
+     * Bloco de inicialização da aplicação, executado ao carregar o DOM.
+     * Define a tela inicial e carrega todos os dados iniciais da API.
+     * @returns {void}
+     */
+    // ... (Código de inicialização e carregamento inicial) ...
     mostrarTela(inicioContent, 'Início');
     setAtivo(navInicioBtn);
 

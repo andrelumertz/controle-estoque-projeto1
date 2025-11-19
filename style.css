@@ -1,9 +1,18 @@
+/**
+ * @fileoverview Estilos personalizados que complementam o Tailwind CSS.
+ * Este arquivo é tipicamente importado no processo de build do Tailwind 
+ * (usando as diretivas @tailwind) e contém regras que precisam de 
+ * URLs ou que são muito específicas.
+ */
+
+/* Diretivas do Tailwind - Importa as camadas base, componentes e utilidades */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Estiliza APENAS a div da coluna esquerda */
+/* Estiliza APENAS a div da coluna esquerda do login (assumindo que o login tem esta classe) */
 .banner {
+    /* Define o fundo usando a imagem 'Banner.svg' */
     background-image: url('./assets/Banner.svg');
     background-size: cover;
     background-position: center;
@@ -14,3 +23,5 @@
 .text-shadow {
     text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7);
 }
+
+/* Nota: Todas as outras regras de estilo são baseadas nas classes aplicadas diretamente no HTML. */
