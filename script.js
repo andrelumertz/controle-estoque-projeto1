@@ -1,4 +1,4 @@
-// script.js (Completo, com Gráficos e Sem Roles)
+// script.js (Com SweetAlert2 integrado)
 import {
     getProdutos, addProduto, updateProduto, deleteProduto, getProduto,
     getClientes, getCliente, addCliente, updateCliente, deleteCliente,
@@ -6,15 +6,44 @@ import {
     getUsuarios, getUsuario, addUsuario, updateUsuario, deleteUsuario,
     getPedidos, addPedido, getPedido, updatePedidoStatus,
     getNotasFiscais, getNotaFiscal, addNotaFiscalManual, updateNotaFiscal, deleteNotaFiscal, addNotaFiscalXml,
-
-    // Funções de Relatório (Novas e Corrigidas)
-    getVisaoGeralEstoque,
-    getVendasPorMes,
-    getTop5Produtos,
-    getTop5Clientes,
-    getItensParados
+    getVisaoGeralEstoque, getVendasPorMes, getTop5Produtos, getTop5Clientes, getItensParados
 } from './services/api.js';
 
+// --- Configuração Padrão do SweetAlert (Tema Roxo) ---
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+    }
+});
+
+// Função auxiliar para Alertas Padrão (Popups centrais)
+function mostrarAlert(icon, title, text) {
+    return Swal.fire({
+        icon: icon,
+        title: title,
+        text: text,
+        confirmButtonColor: '#7c3aed',
+        background: '#1e1e2d',
+        color: '#fff',
+        
+        // --- NOVAS CONFIGURAÇÕES DE TAMANHO ---
+        width: '350px',   // Define uma largura fixa menor (o padrão é grande)
+        padding: '1em',   // Diminui o espaço interno (borda até o texto)
+        // --------------------------------------
+        
+        // Se quiser diminuir a FONTE também, adicione isso:
+        customClass: {
+            title: 'swal-title-small', // Vamos definir isso no CSS ou usar classes do Tailwind se preferir
+            htmlContainer: 'swal-text-small'
+        }
+    });
+}
 
 // --- Variáveis Globais de Gráficos ---
 let vendasChartInstance = null;
@@ -38,20 +67,25 @@ function formatarData(dataString) {
         return 'Data Inválida';
     }
 }
-// --- Função applyUserRoleLimits REMOVIDA ---
 
-document.addEventListener('DOMContentLoaded', () => {
+// Tornamos a função async para poder usar await no SweetAlert de login
+document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 1. GUARDA DE AUTENTICAÇÃO ---
     const token = localStorage.getItem('authToken');
     if (!token) {
-        alert('Você precisa estar logado para acessar esta página.');
+        await Swal.fire({
+            icon: 'warning',
+            title: 'Acesso Restrito',
+            text: 'Você precisa estar logado para acessar esta página.',
+            confirmButtonColor: '#7c3aed',
+            allowOutsideClick: false,
+            background: '#1e1e2d',
+            color: '#fff'
+        });
         window.location.href = 'login.html';
         return;
     }
-
-    // --- Pega a role... REMOVIDO ---
-
 
     // --- 2. DEFINIÇÃO DE ELEMENTOS (DOM) ---
     // Elementos Globais
@@ -63,21 +97,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerLogoutBtn = document.getElementById('header-logout-btn');
     const headerTitle = document.getElementById('header-title');
 
-    // Header (Simplificado)
+    // Header
     document.getElementById('user-name-display').textContent = "Usuário";
     document.getElementById('user-role-display').textContent = "Online";
 
-    // Navegação (Telas)
+    // Navegação
     const navInicioBtn = document.getElementById('nav-inicio-btn');
-    const navRelatoriosBtn = document.getElementById('nav-relatorios-btn'); // NOVO
+    const navRelatoriosBtn = document.getElementById('nav-relatorios-btn');
     const navProdutosBtn = document.getElementById('nav-produtos-btn');
     const navPedidosBtn = document.getElementById('nav-pedidos-btn');
     const navNotasFiscaisBtn = document.getElementById('nav-notas-fiscais-btn');
     const navClientesBtn = document.getElementById('nav-clientes-btn');
     const navFornecedoresBtn = document.getElementById('nav-fornecedores-btn');
     const navUsuariosBtn = document.getElementById('nav-usuarios-btn');
+    
     const inicioContent = document.getElementById('inicio-content');
-    const relatoriosContent = document.getElementById('relatorios-content'); // NOVO
+    const relatoriosContent = document.getElementById('relatorios-content');
     const produtosContent = document.getElementById('produtos-content');
     const pedidosContent = document.getElementById('pedidos-content');
     const notasFiscaisContent = document.getElementById('notas-fiscais-content');
@@ -85,39 +120,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const fornecedoresContent = document.getElementById('fornecedores-content');
     const usuariosContent = document.getElementById('usuarios-content');
 
-    // Tela de PRODUTOS
+    // Telas e Tabelas
     const productsTableBody = document.getElementById('products-table-body');
     const searchProdutoInput = document.getElementById('search-produto-input');
-    // (CORRIGIDO) IDs da Visão Geral
     const totalItensSpan = document.getElementById('total-itens');
     const valorTotalVendaSpan = document.getElementById('valor-total-venda');
     const valorTotalCustoSpan = document.getElementById('valor-total-custo');
     const addProductHeaderBtn = document.getElementById('add-product-header-btn');
 
-    // Tela de CLIENTES
     const clientesTableBody = document.getElementById('clientes-table-body');
     const searchClienteInput = document.getElementById('search-cliente-input');
     const addClienteHeaderBtn = document.getElementById('add-cliente-header-btn');
 
-    // Tela de FORNECEDORES
     const fornecedoresTableBody = document.getElementById('fornecedores-table-body');
     const searchFornecedorInput = document.getElementById('search-fornecedor-input');
     const addFornecedorHeaderBtn = document.getElementById('add-fornecedor-header-btn');
 
-    // Tela de USUÁRIOS
     const usuariosTableBody = document.getElementById('usuarios-table-body');
     const searchUsuarioInput = document.getElementById('search-usuario-input');
     const addUsuarioHeaderBtn = document.getElementById('add-usuario-header-btn');
 
-    // Tela de PEDIDOS
     const pedidosTableBody = document.getElementById('pedidos-table-body');
     const searchPedidoInput = document.getElementById('search-pedido-input');
 
-    // Tela de NOTAS FISCAIS
     const notasFiscaisTableBody = document.getElementById('notas-fiscais-table-body');
     const searchNotaInput = document.getElementById('search-nota-input');
 
-    // Modal de PRODUTO
+    // Modais
+    // PRODUTO
     const productModal = document.getElementById('product-modal');
     const closeProductModalBtn = document.getElementById('close-product-modal-btn');
     const cancelProductBtn = document.getElementById('cancel-product-btn');
@@ -130,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const productCustoInput = document.getElementById('product-custo');
     const productTipoInput = document.getElementById('product-tipo');
 
-    // Modal de CLIENTE
+    // CLIENTE
     const clienteModal = document.getElementById('cliente-modal');
     const closeClienteModalBtn = document.getElementById('close-cliente-modal-btn');
     const cancelClienteBtn = document.getElementById('cancel-cliente-btn');
@@ -142,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clienteEmailInput = document.getElementById('cliente-email');
     const clienteEnderecoInput = document.getElementById('cliente-endereco');
 
-    // Modal de FORNECEDOR
+    // FORNECEDOR
     const fornecedorModal = document.getElementById('fornecedor-modal');
     const closeFornecedorModalBtn = document.getElementById('close-fornecedor-modal-btn');
     const cancelFornecedorBtn = document.getElementById('cancel-fornecedor-btn');
@@ -155,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fornecedorTelefoneInput = document.getElementById('fornecedor-telefone');
     const fornecedorEnderecoInput = document.getElementById('fornecedor-endereco');
 
-    // Modal de USUÁRIO
+    // USUÁRIO
     const usuarioModal = document.getElementById('usuario-modal');
     const closeUsuarioModalBtn = document.getElementById('close-usuario-modal-btn');
     const cancelUsuarioBtn = document.getElementById('cancel-usuario-btn');
@@ -167,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const usuarioSenhaInput = document.getElementById('usuario-senha');
     const usuarioRoleInput = document.getElementById('usuario-role');
 
-    // Modal de PEDIDO
+    // PEDIDO
     const pedidoModal = document.getElementById('pedido-modal');
     const openPedidoModalBtn = document.getElementById('open-pedido-modal-btn');
     const closePedidoModalBtn = document.getElementById('close-pedido-modal-btn');
@@ -180,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pedidoItemsListBody = document.getElementById('pedido-items-list-body');
     const pedidoValorTotalSpan = document.getElementById('pedido-valor-total');
 
-    // Modal de NOTA FISCAL
+    // NOTA FISCAL
     const notaFiscalModal = document.getElementById('nota-fiscal-modal');
     const openNotaFiscalModalBtn = document.getElementById('open-nota-fiscal-modal-btn');
     const closeNotaFiscalModalBtn = document.getElementById('close-nota-fiscal-modal-btn');
@@ -205,12 +235,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const nfValorTotalSpan = document.getElementById('nf-valor-total-label');
     let nfItems = [];
 
-    // Modal de Exclusão (GENÉRICO)
+    // Modal de Exclusão
     const deleteModal = document.getElementById('delete-confirm-modal');
     const deleteConfirmMessage = document.getElementById('delete-confirm-message');
     const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
     const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-
 
     // --- 3. ESTADO DA APLICAÇÃO ---
     let itemParaExcluir = { id: null, tipo: null, nome: null };
@@ -224,10 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let pedidoItems = [];
 
 
-    // --- 4. applyUserRoleLimits() REMOVIDA ---
-
-
-    // --- 5. EVENT LISTENERS GLOBAIS (Sidebar, Logout) ---
+    // --- 5. EVENT LISTENERS GLOBAIS ---
     menuButton?.addEventListener('click', () => {
         sidebar?.classList.toggle('-translate-x-full');
         mainContent?.classList.toggle('md:ml-64');
@@ -243,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
     headerLogoutBtn?.addEventListener('click', handleLogout);
 
 
-    // --- 6. LÓGICA DE NAVEGAÇÃO ENTRE TELAS (CORRIGIDA) ---
+    // --- 6. LÓGICA DE NAVEGAÇÃO ---
     const navButtons = [navInicioBtn, navRelatoriosBtn, navProdutosBtn, navPedidosBtn, navClientesBtn, navFornecedoresBtn, navUsuariosBtn, navNotasFiscaisBtn];
     const contentScreens = [inicioContent, relatoriosContent, produtosContent, pedidosContent, clientesContent, fornecedoresContent, usuariosContent, notasFiscaisContent];
 
@@ -273,71 +299,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     navButtons.forEach(btn => {
         if (!btn) return;
-        // Ignora os botões que abrem modais (que não estão neste array)
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const mapping = telaMap[btn.id];
             if (mapping) {
                 mostrarTela(mapping.tela, mapping.titulo);
                 setAtivo(btn);
-
-                // (NOVO) Carrega os dados do gráfico SE for a tela de relatórios
                 if (btn.id === 'nav-relatorios-btn') {
                     carregarRelatorios();
                 }
             }
         });
     });
-    // --- Fim da Lógica de Navegação ---
 
-
-    // --- 7. (NOVO) LÓGICA DE RELATÓRIOS E GRÁFICOS ---
-
-    /**
-     * Função principal que busca dados e chama as funções de renderização de gráficos.
-     */
+    // --- 7. RELATÓRIOS E GRÁFICOS ---
     async function carregarRelatorios() {
         try {
-            // Busca os dados em paralelo
-            const [vendasData, topProdutosData, topClientesData] = await Promise.all([
+            const [vendasData, topProdutosData, topClientesData, itensParadosData] = await Promise.all([
                 getVendasPorMes(),
                 getTop5Produtos(),
                 getTop5Clientes(),
                 getItensParados()
             ]);
-
-            // Renderiza os gráficos com os dados
             renderizarChartVendas(vendasData);
             renderizarChartTopItens(topProdutosData);
             renderizarChartTopClientes(topClientesData);
-
+            renderizarTabelaItensParados(itensParadosData);
         } catch (error) {
             console.error("Erro ao carregar relatórios:", error);
-            alert("Não foi possível carregar os relatórios.");
+            mostrarAlert('error', 'Erro', "Não foi possível carregar os relatórios.");
         }
     }
 
-    /**
-     * Renderiza o gráfico de Vendas por Mês (Gráfico de Linha)
-     */
+    const corTextoGrafico = '#9CA3AF';
+    const corGridGrafico = '#374151';
+    const corBordaPizza = '#1e1e2d';
 
-    const corTextoGrafico = '#9CA3AF'; // Cinza claro (para texto/ticks)
-    const corGridGrafico = '#374151';   // Cinza escuro (para linhas de grade)
-    const corBordaPizza = '#1e1e2d';    // Cor de fundo (para borda da pizza)
-
-
-
-    /**
-     * Gráfico de Linha (Vendas) - Versão LARANJA/VERMELHO
-     */
     function renderizarChartVendas(data) {
         const ctx = document.getElementById('vendasChart').getContext('2d');
         const labels = data.map(d => `${String(d.mes).padStart(2, '0')}/${d.ano}`);
         const valores = data.map(d => d.valorTotalVendido);
 
-        if (vendasChartInstance) {
-            vendasChartInstance.destroy();
-        }
+        if (vendasChartInstance) vendasChartInstance.destroy();
 
         vendasChartInstance = new Chart(ctx, {
             type: 'line',
@@ -346,11 +349,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     label: 'Valor Total Vendido (R$)',
                     data: valores,
-                    backgroundColor: 'rgba(249, 115, 22, 0.2)', // Laranja transparente
-                    borderColor: 'rgba(249, 115, 22, 1)',     // Laranja opaco
+                    backgroundColor: 'rgba(249, 115, 22, 0.2)',
+                    borderColor: 'rgba(249, 115, 22, 1)',
                     borderWidth: 2,
                     tension: 0.1,
-                    fill: false // 'fill: false' está CORRETO para remover o fundo
+                    fill: false
                 }]
             },
             options: {
@@ -358,45 +361,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            callback: (value) => formatarMoeda(value),
-                            color: corTextoGrafico // <-- CORRIGIDO
-                        },
-                        grid: {
-                            color: corGridGrafico // <-- CORRIGIDO
-                        }
+                        ticks: { callback: (value) => formatarMoeda(value), color: corTextoGrafico },
+                        grid: { color: corGridGrafico }
                     },
                     x: {
-                        ticks: {
-                            color: corTextoGrafico // <-- CORRIGIDO
-                        },
-                        grid: {
-                            color: corGridGrafico // <-- CORRIGIDO
-                        }
+                        ticks: { color: corTextoGrafico },
+                        grid: { color: corGridGrafico }
                     }
                 },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: corTextoGrafico // <-- CORRIGIDO
-                        }
-                    }
-                }
+                plugins: { legend: { labels: { color: corTextoGrafico } } }
             }
         });
     }
 
-    /**
-     * Gráfico de Barras (Top Itens) - Versão LARANJA/VERMELHO
-     */
     function renderizarChartTopItens(data) {
         const ctx = document.getElementById('topItensChart').getContext('2d');
         const labels = data.map(d => d.nomeProduto);
         const valores = data.map(d => d.totalVendido);
 
-        if (topItensChartInstance) {
-            topItensChartInstance.destroy();
-        }
+        if (topItensChartInstance) topItensChartInstance.destroy();
 
         topItensChartInstance = new Chart(ctx, {
             type: 'bar',
@@ -405,14 +388,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     label: 'Quantidade Vendida',
                     data: valores,
-                    backgroundColor: [
-                        'rgba(239, 68, 68, 0.8)',   // Vermelho 1
-                        'rgba(249, 115, 22, 0.8)', // Laranja 1
-                        'rgba(245, 158, 11, 0.8)', // Âmbar 1
-                        'rgba(234, 179, 8, 0.8)',   // Amarelo
-                        'rgba(220, 38, 38, 0.8)'   // Vermelho 2
-                    ],
-                    borderColor: corGridGrafico, // <-- CORRIGIDO
+                    backgroundColor: ['rgba(239, 68, 68, 0.8)', 'rgba(249, 115, 22, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(234, 179, 8, 0.8)', 'rgba(220, 38, 38, 0.8)'],
+                    borderColor: corGridGrafico,
                     borderWidth: 1
                 }]
             },
@@ -420,44 +397,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 indexAxis: 'y',
                 responsive: true,
                 scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            color: corTextoGrafico // <-- CORRIGIDO
-                        },
-                        grid: {
-                            color: corGridGrafico // <-- CORRIGIDO
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: corTextoGrafico // <-- CORRIGIDO
-                        },
-                        grid: {
-                            color: corGridGrafico // <-- CORRIGIDO
-                        }
-                    }
+                    x: { beginAtZero: true, ticks: { color: corTextoGrafico }, grid: { color: corGridGrafico } },
+                    y: { ticks: { color: corTextoGrafico }, grid: { color: corGridGrafico } }
                 },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
+                plugins: { legend: { display: false } }
             }
         });
     }
 
-    /**
-     * Gráfico de Pizza (Top Clientes) - Versão LARANJA/VERMELHO
-     */
     function renderizarChartTopClientes(data) {
         const ctx = document.getElementById('topClientesChart').getContext('2d');
         const labels = data.map(d => d.nomeCliente);
         const valores = data.map(d => d.valorTotalComprado);
 
-        if (topClientesChartInstance) {
-            topClientesChartInstance.destroy();
-        }
+        if (topClientesChartInstance) topClientesChartInstance.destroy();
 
         topClientesChartInstance = new Chart(ctx, {
             type: 'doughnut',
@@ -466,141 +419,94 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     label: 'Valor Total (R$)',
                     data: valores,
-                    backgroundColor: [
-                        'rgba(239, 68, 68, 0.8)',   // Vermelho 1
-                        'rgba(249, 115, 22, 0.8)', // Laranja 1
-                        'rgba(245, 158, 11, 0.8)', // Âmbar 1
-                        'rgba(234, 179, 8, 0.8)',   // Amarelo
-                        'rgba(220, 38, 38, 0.8)'   // Vermelho 2
-                    ],
-                    borderColor: corBordaPizza, // <-- CORRIGIDO
+                    backgroundColor: ['rgba(239, 68, 68, 0.8)', 'rgba(249, 115, 22, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(234, 179, 8, 0.8)', 'rgba(220, 38, 38, 0.8)'],
+                    borderColor: corBordaPizza,
                     borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            color: corTextoGrafico // <-- CORRIGIDO
-                        }
-                    }
+                    legend: { position: 'top', labels: { color: corTextoGrafico } }
                 }
             }
         });
     }
-    /**
-     * Renderiza a tabela de Itens Parados
-     */
+
     function renderizarTabelaItensParados(data) {
         const tbody = document.getElementById('itens-parados-tbody');
-
-        if (!tbody) {
-            console.error("Elemento 'itens-parados-tbody' não encontrado!");
-            return;
-        }
-
+        if (!tbody) return;
         tbody.innerHTML = '';
-
         if (!data || data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-green-500">✅ Não há itens parados no momento!</td></tr>';
             return;
         }
-
         data.forEach(item => {
             const tr = document.createElement('tr');
             tr.className = 'border-b border-gray-700 hover:bg-[#161625]';
-
-            // Calcula dias parados
             let diasParado = 'Nunca vendido';
             let corDias = 'text-red-500';
 
             if (item.dataUltimaVenda) {
                 const dataVenda = new Date(item.dataUltimaVenda);
                 const hoje = new Date();
-                const diffTime = Math.abs(hoje - dataVenda);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+                const diffDays = Math.ceil(Math.abs(hoje - dataVenda) / (1000 * 60 * 60 * 24));
                 diasParado = `${diffDays} dias`;
-
-                if (diffDays >= 30) {
-                    corDias = 'text-red-600 font-bold';
-                } else if (diffDays >= 20) {
-                    corDias = 'text-orange-500';
-                } else {
-                    corDias = 'text-yellow-500';
-                }
+                if (diffDays >= 30) corDias = 'text-red-600 font-bold';
+                else if (diffDays >= 20) corDias = 'text-orange-500';
+                else corDias = 'text-yellow-500';
             }
-
-            const ultimaVenda = item.dataUltimaVenda
-                ? formatarData(item.dataUltimaVenda)
-                : '<span class="text-red-500">Nunca</span>';
-
+            const ultimaVenda = item.dataUltimaVenda ? formatarData(item.dataUltimaVenda) : '<span class="text-red-500">Nunca</span>';
             tr.innerHTML = `
             <td class="p-3 text-white">${item.nome}</td>
             <td class="p-3 text-center font-bold text-white">${item.quantidade}</td>
             <td class="p-3 text-center">${ultimaVenda}</td>
             <td class="p-3 text-center ${corDias} font-bold">${diasParado}</td>
         `;
-
             tbody.appendChild(tr);
         });
     }
 
-    // --- 8. FUNÇÕES DE DADOS (Carregar e Renderizar Tabelas) ---
+    // --- 8. FUNÇÕES DE DADOS (Tabelas) ---
 
-    // --- PRODUTOS (CORRIGIDO) ---
+    // PEDIDOS
     function renderizarTabelaPedidos(pedidos) {
         if (!pedidosTableBody) return;
         pedidosTableBody.innerHTML = '';
         if (pedidos.length === 0) {
             const msg = searchPedidoInput.value ? "Nenhum pedido encontrado." : "Nenhum pedido cadastrado.";
-            pedidosTableBody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-500">${msg}</td></tr>`; // Colspan 6
+            pedidosTableBody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-500">${msg}</td></tr>`;
             return;
         }
         pedidos.forEach(pedido => {
             const tr = document.createElement('tr');
-            // (NOVO) Adiciona classe e data-id para clique
             tr.className = 'border-b border-gray-700 hover:bg-[#1e1e2d] pedido-row-clickable';
             tr.dataset.id = pedido.id;
-
             const dataFormatada = formatarData(pedido.dataPedido);
             const statusLower = (pedido.status || '').toLowerCase();
             let statusHtml = '';
+            if (statusLower === 'concluído') statusHtml = '<span class="bg-green-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Concluído</span>';
+            else if (statusLower === 'pendente') statusHtml = '<span class="bg-yellow-500 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Pendente</span>';
+            else if (statusLower === 'cancelado') statusHtml = '<span class="bg-red-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Cancelado</span>';
+            else statusHtml = `<span class="bg-gray-500 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">${pedido.status || 'N/A'}</span>`;
 
-            // Lógica dos Badges de Status
-            if (statusLower === 'concluído') {
-                statusHtml = '<span class="bg-green-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Concluído</span>';
-            } else if (statusLower === 'pendente') {
-                statusHtml = '<span class="bg-yellow-500 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Pendente</span>';
-            } else if (statusLower === 'cancelado') {
-                statusHtml = '<span class="bg-red-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Cancelado</span>';
-            } else {
-                statusHtml = `<span class="bg-gray-500 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">${pedido.status || 'N/A'}</span>`;
-            }
-
-            // (NOVO) Coluna Ações
             tr.innerHTML = `
                 <td class="p-3 font-medium text-white">${pedido.id}</td>
                 <td class="p-3 hidden sm:table-cell">${pedido.nomeCliente || 'N/A'}</td>
                 <td class="p-3 hidden md:table-cell">${dataFormatada}</td>
                 <td class="p-3">${statusHtml}</td>
                 <td class="p-3 font-medium text-white">${formatarMoeda(pedido.valorTotal)}</td>
-                <td class="p-3 0046FF">
-                    <i class="fa fa-eye"></i>
-                </td>
+                <td class="p-3 text-blue-500"><i class="fa fa-eye"></i></td>
             `;
             pedidosTableBody.appendChild(tr);
         });
     }
 
-    // (ATUALIZADO) Aceita status
     async function carregarPedidosTabela(status = null) {
         if (!pedidosTableBody) return;
-        pedidosTableBody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-500">Carregando...</td></tr>`; // Colspan 6
+        pedidosTableBody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-500">Carregando...</td></tr>`;
         try {
-            const pedidos = await getPedidos(status); // Passa o status
+            const pedidos = await getPedidos(status);
             todosOsPedidos = pedidos;
             renderizarTabelaPedidos(todosOsPedidos);
         } catch (error) {
@@ -618,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTabelaPedidos(filtrados);
     });
 
-    // --- CLIENTES (CORRIGIDO) ---
+    // CLIENTES
     function renderizarTabelaClientes(clientes) {
         if (!clientesTableBody) return;
         clientesTableBody.innerHTML = '';
@@ -654,7 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const clientes = await getClientes();
             todosOsClientes = clientes;
             renderizarTabelaClientes(todosOsClientes);
-
             const optionHtml = clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             pedidoClienteSelect.innerHTML = '<option value="">Selecione um cliente</option>' + optionHtml;
         } catch (error) {
@@ -671,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTabelaClientes(filtrados);
     });
 
-    // --- FORNECEDORES (CORRIGIDO) ---
+    // FORNECEDORES
     function renderizarTabelaFornecedores(fornecedores) {
         if (!fornecedoresTableBody) return;
         fornecedoresTableBody.innerHTML = '';
@@ -707,7 +612,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const fornecedores = await getFornecedores();
             todosOsFornecedores = fornecedores;
             renderizarTabelaFornecedores(todosOsFornecedores);
-
             const optionHtml = fornecedores.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
             nfFornecedorSelect.innerHTML = '<option value="">Selecione um fornecedor</option>' + optionHtml;
         } catch (error) {
@@ -724,7 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTabelaFornecedores(filtrados);
     });
 
-    // --- USUÁRIOS (CORRIGIDO) ---
+    // USUÁRIOS
     function renderizarTabelaUsuarios(usuarios) {
         if (!usuariosTableBody) return;
         usuariosTableBody.innerHTML = '';
@@ -736,10 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
         usuarios.forEach(usuario => {
             const tr = document.createElement('tr');
             tr.className = 'border-b border-gray-700 hover:bg-[#1e1e2d]';
-            const roleApi = (usuario.tipo || 'Funcionario').toLowerCase();
-            const displayRole = roleApi === 'admin'
-                ? 'Administrador'
-                : 'Funcionario';
+            const displayRole = (usuario.tipo || 'Funcionario').toLowerCase() === 'admin' ? 'Administrador' : 'Funcionario';
             const statusHtml = usuario.status === true
                 ? '<span class="bg-green-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Ativo</span>'
                 : '<span class="bg-red-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">Inativo</span>';
@@ -782,26 +683,20 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTabelaUsuarios(filtrados);
     });
 
-    // --- PEDIDOS (CORRIGIDO) ---
-
-    // --- PRODUTOS (CORRIGIDO) ---
+    // PRODUTOS
     function renderizarTabelaProdutos(produtos) {
         if (!productsTableBody) return;
         productsTableBody.innerHTML = '';
         if (produtos.length === 0) {
             const msg = searchProdutoInput.value ? "Nenhum produto encontrado." : "Nenhum produto cadastrado.";
-            // Corrigido para 5 colunas
             productsTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">${msg}</td></tr>`;
             return;
         }
         produtos.forEach(produto => {
             const tr = document.createElement('tr');
             tr.className = 'border-b border-gray-700 hover:bg-[#1e1e2d]';
-
             const statusClass = produto.status === 'Em Estoque' ? 'text-green-500' : 'text-red-500';
             const statusHtml = `<span class="font-bold ${statusClass}">${produto.status}</span>`;
-
-            // Ações (Sem verificação de role)
             const acoesHtml = `
                 <button data-id="${produto.id}" data-nome="${produto.nome}" class="text-blue-500 hover:text-blue-400 mr-2 edit-btn" title="Editar">
                     <i class="fa fa-edit"></i>
@@ -810,8 +705,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fa fa-trash-alt"></i>
                 </button>
             `;
-
-            // Layout da tabela (Corrigido para 5 colunas + Ações)
             tr.innerHTML = `
                 <td class="p-3 hidden sm:table-cell">${produto.nome || 'N/A'}</td>
                 <td class="p-3 sm:hidden">${produto.nome || 'N/A'}</td>
@@ -832,8 +725,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const produtos = await getProdutos();
             todosOsProdutos = produtos;
             renderizarTabelaProdutos(todosOsProdutos);
-
-            // Popula dropdowns
             const optionHtml = produtos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
             pedidoItemProdutoSelect.innerHTML = '<option value="">Selecione um produto</option>' + optionHtml;
             nfItemProdutoSelect.innerHTML = '<option value="">Selecione um produto</option>' + optionHtml;
@@ -842,16 +733,13 @@ document.addEventListener('DOMContentLoaded', () => {
             productsTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-red-500">Falha ao carregar produtos.</td></tr>`;
         }
     }
-
     searchProdutoInput?.addEventListener('input', () => {
         const searchTerm = searchProdutoInput.value.toLowerCase();
-        const filtrados = todosOsProdutos.filter(p =>
-            p.nome.toLowerCase().includes(searchTerm)
-        );
+        const filtrados = todosOsProdutos.filter(p => p.nome.toLowerCase().includes(searchTerm));
         renderizarTabelaProdutos(filtrados);
     });
 
-    // --- NOTAS FISCAIS ---
+    // NOTAS FISCAIS
     function renderizarTabelaNotasFiscais(notas) {
         if (!notasFiscaisTableBody) return;
         notasFiscaisTableBody.innerHTML = '';
@@ -865,8 +753,6 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.className = 'border-b border-gray-700 hover:bg-[#1e1e2d]';
             const dataFormatada = formatarData(nota.dataEmissao);
             const valorFormatado = formatarMoeda(nota.valorTotal);
-
-            // Botão de editar (olho) e deletar
             const acoesHtml = `
                 <button data-id="${nota.id}" class="text-blue-400 hover:text-blue-300 mr-3 edit-btn" title="Exibir Detalhes">
                     <i class="fa fa-eye"></i>
@@ -885,13 +771,10 @@ document.addEventListener('DOMContentLoaded', () => {
             notasFiscaisTableBody.appendChild(tr);
         });
     }
-
     async function carregarNotasFiscaisTabela() {
         if (!notasFiscaisTableBody) return;
         notasFiscaisTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">Carregando...</td></tr>`;
         try {
-            // (Aviso: A função getNotasFiscais() no api.js ainda retorna []
-            // até implementarmos o GET /api/NotaFiscalCompra no backend)
             const notas = await getNotasFiscais();
             todasAsNotasFiscais = notas;
             renderizarTabelaNotasFiscais(todasAsNotasFiscais);
@@ -900,7 +783,6 @@ document.addEventListener('DOMContentLoaded', () => {
             notasFiscaisTableBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-red-500">Falha ao carregar notas fiscais.</td></tr>`;
         }
     }
-
     searchNotaInput?.addEventListener('input', () => {
         const searchTerm = searchNotaInput.value.toLowerCase();
         const filtrados = todasAsNotasFiscais.filter(n =>
@@ -910,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTabelaNotasFiscais(filtrados);
     });
 
-    // --- VISÃO GERAL (CARDS) (CORRIGIDO) ---
+    // VISÃO GERAL
     async function carregarVisaoGeralEstoque() {
         if (!totalItensSpan || !valorTotalVendaSpan || !valorTotalCustoSpan) return;
         totalItensSpan.textContent = '...';
@@ -918,23 +800,18 @@ document.addEventListener('DOMContentLoaded', () => {
         valorTotalCustoSpan.textContent = '...';
         try {
             const data = await getVisaoGeralEstoque();
-            // Nossos IDs no HTML: total-itens, valor-total-venda, valor-total-custo
-            // Nossa API retorna: totalItensUnicos, valorTotalEstoqueVenda, valorTotalEstoqueCusto
             totalItensSpan.textContent = data.totalItensUnicos;
             valorTotalVendaSpan.textContent = formatarMoeda(data.valorTotalEstoqueVenda);
             valorTotalCustoSpan.textContent = formatarMoeda(data.valorTotalEstoqueCusto);
         } catch (error) {
             console.error("Erro ao buscar visão geral:", error);
             totalItensSpan.textContent = 'Erro';
-            valorTotalVendaSpan.textContent = 'Erro';
-            valorTotalCustoSpan.textContent = 'Erro';
         }
     }
 
+    // --- 9. MODAIS ---
 
-    // --- 8. LÓGICA DOS MODAIS ---
-
-    // --- Modal de PRODUTO (Adicionar/Editar) (CORRIGIDO) ---
+    // PRODUTO
     function abrirModalProduto(produto = null) {
         itemParaEditar = produto;
         productForm.reset();
@@ -944,7 +821,7 @@ document.addEventListener('DOMContentLoaded', () => {
             productNomeInput.value = produto.nome;
             productQuantidadeInput.value = produto.quantidade;
             productPrecoInput.value = produto.precoVenda;
-            productCustoInput.value = produto.precoCusto; // <-- ADICIONADO
+            productCustoInput.value = produto.precoCusto;
             productTipoInput.value = produto.tipo;
         } else {
             productModalTitle.textContent = 'Adicionar Novo Produto';
@@ -965,7 +842,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const btn = productForm.querySelector('button[type="submit"]');
         btn.disabled = true; btn.textContent = 'Salvando...';
-
         const produto = {
             nome: productNomeInput.value,
             quantidade: parseInt(productQuantidadeInput.value),
@@ -976,22 +852,22 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (itemParaEditar) {
                 await updateProduto(itemParaEditar.id, { ...produto, id: itemParaEditar.id });
-                alert('Produto atualizado com sucesso!');
+                mostrarAlert('success', 'Sucesso', 'Produto atualizado com sucesso!');
             } else {
                 await addProduto(produto);
-                alert('Produto adicionado com sucesso!');
+                mostrarAlert('success', 'Sucesso', 'Produto adicionado com sucesso!');
             }
             fecharModalProduto();
             await carregarProdutosTabela();
             await carregarVisaoGeralEstoque();
         } catch (error) {
-            alert(`Falha ao salvar produto: ${error.message}`);
+            mostrarAlert('error', 'Erro', `Falha ao salvar produto: ${error.message}`);
         } finally {
             btn.disabled = false; btn.textContent = 'Salvar';
         }
     });
 
-    // --- Modal de CLIENTE (Adicionar/Editar) (CORRIGIDO) ---
+    // CLIENTE
     function abrirModalCliente(cliente = null) {
         itemParaEditar = cliente;
         clienteForm.reset();
@@ -1026,27 +902,26 @@ document.addEventListener('DOMContentLoaded', () => {
             cnpj: clienteCnpjInput.value,
             email: clienteEmailInput.value,
             endereco: clienteEnderecoInput.value,
-            // Envia o status para a API (para o PUT preservar o status)
             status: itemParaEditar ? itemParaEditar.status : true
         };
         try {
             if (itemParaEditar) {
                 await updateCliente(itemParaEditar.id, { ...cliente, id: itemParaEditar.id });
-                alert('Cliente atualizado com sucesso!');
+                mostrarAlert('success', 'Sucesso', 'Cliente atualizado com sucesso!');
             } else {
                 await addCliente(cliente);
-                alert('Cliente cadastrado com sucesso!');
+                mostrarAlert('success', 'Sucesso', 'Cliente cadastrado com sucesso!');
             }
             fecharModalCliente();
             await carregarClientesTabela();
         } catch (error) {
-            alert(`Falha ao salvar cliente: ${error.message}`);
+            mostrarAlert('error', 'Erro', `Falha ao salvar cliente: ${error.message}`);
         } finally {
             btn.disabled = false; btn.textContent = 'Salvar Cliente';
         }
     });
 
-    // --- Modal de FORNECEDOR (Adicionar/Editar) ---
+    // FORNECEDOR
     function abrirModalFornecedor(fornecedor = null) {
         itemParaEditar = fornecedor;
         fornecedorForm.reset();
@@ -1054,7 +929,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fornecedorModalTitle.textContent = 'Editar Fornecedor';
             fornecedorIdInput.value = fornecedor.id;
             fornecedorNomeInput.value = fornecedor.nome;
-            fornecedorCnpjInput.value = fornecedor.cnpj; // API usa 'cnpj'
+            fornecedorCnpjInput.value = fornecedor.cnpj;
             fornecedorEmailInput.value = fornecedor.email;
             fornecedorTelefoneInput.value = fornecedor.telefone;
             fornecedorEnderecoInput.value = fornecedor.endereco;
@@ -1079,7 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true; btn.textContent = 'Salvando...';
         const fornecedor = {
             nome: fornecedorNomeInput.value,
-            cnpj: fornecedorCnpjInput.value, // API usa 'cnpj'
+            cnpj: fornecedorCnpjInput.value,
             email: fornecedorEmailInput.value,
             telefone: fornecedorTelefoneInput.value,
             endereco: fornecedorEnderecoInput.value,
@@ -1087,26 +962,25 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (itemParaEditar) {
                 await updateFornecedor(itemParaEditar.id, { ...fornecedor, id: itemParaEditar.id });
-                alert('Fornecedor atualizado com sucesso!');
+                mostrarAlert('success', 'Sucesso', 'Fornecedor atualizado com sucesso!');
             } else {
                 await addFornecedor(fornecedor);
-                alert('Fornecedor cadastrado com sucesso!');
+                mostrarAlert('success', 'Sucesso', 'Fornecedor cadastrado com sucesso!');
             }
             fecharModalFornecedor();
             await carregarFornecedoresTabela();
         } catch (error) {
-            alert(`Falha ao salvar fornecedor: ${error.message}`);
+            mostrarAlert('error', 'Erro', `Falha ao salvar fornecedor: ${error.message}`);
         } finally {
             btn.disabled = false; btn.textContent = 'Salvar Fornecedor';
         }
     });
 
-    // --- Modal de USUÁRIO (Adicionar/Editar) (CORRIGIDO) ---
+    // USUÁRIO
     function abrirModalUsuario(usuario = null) {
         itemParaEditar = usuario;
         usuarioForm.reset();
         usuarioSenhaInput.placeholder = "Deixe em branco para não alterar";
-
         if (usuario) {
             usuarioModalTitle.textContent = 'Editar Usuário';
             usuarioIdInput.value = usuario.id;
@@ -1133,45 +1007,35 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const btn = usuarioForm.querySelector('button[type="submit"]');
         btn.disabled = true; btn.textContent = 'Salvando...';
-
-        // Mapeia o 'value' do select (admin/user) para o 'tipo' da API (Admin/Funcionario)
         const tipoApi = usuarioRoleInput.value === 'admin' ? 'Admin' : 'Funcionario';
-
         const usuario = {
             nome: usuarioNomeInput.value,
             email: usuarioEmailInput.value,
             senha: usuarioSenhaInput.value,
-            tipo: tipoApi, // Envia 'Admin' ou 'Funcionario'
+            tipo: tipoApi,
             status: itemParaEditar ? itemParaEditar.status : true
         };
-
-        if (itemParaEditar && !usuario.senha) {
-            delete usuario.senha;
-        }
-
+        if (itemParaEditar && !usuario.senha) delete usuario.senha;
         try {
             if (itemParaEditar) {
                 await updateUsuario(itemParaEditar.id, { ...usuario, id: itemParaEditar.id });
-                alert('Usuário atualizado com sucesso!');
+                mostrarAlert('success', 'Sucesso', 'Usuário atualizado com sucesso!');
             } else {
                 await addUsuario(usuario);
-                alert('Usuário cadastrado com sucesso!');
+                mostrarAlert('success', 'Sucesso', 'Usuário cadastrado com sucesso!');
             }
             fecharModalUsuario();
             await carregarUsuariosTabela();
         } catch (error) {
-            alert(`Falha ao salvar usuário: ${error.message}`);
+            mostrarAlert('error', 'Erro', `Falha ao salvar usuário: ${error.message}`);
         } finally {
             btn.disabled = false; btn.textContent = 'Salvar Usuário';
         }
     });
 
-    // --- Modal de PEDIDO (Gerar) (CORRIGIDO) ---
+    // PEDIDO (Gerar)
     function abrirModalPedido() {
-        if (!pedidoModal || !pedidoForm) {
-            console.error("Erro Fatal: O HTML do Modal de Pedido não foi encontrado.");
-            return;
-        }
+        if (!pedidoModal || !pedidoForm) return;
         pedidoForm.reset();
         pedidoItems = [];
         renderizarItensPedido();
@@ -1179,10 +1043,8 @@ document.addEventListener('DOMContentLoaded', () => {
         pedidoModal.classList.add('flex');
     }
     function fecharModalPedido() {
-        if (pedidoModal) {
-            pedidoModal.classList.add('hidden');
-            pedidoModal.classList.remove('flex');
-        }
+        pedidoModal?.classList.add('hidden');
+        pedidoModal?.classList.remove('flex');
     }
     openPedidoModalBtn?.addEventListener('click', abrirModalPedido);
     closePedidoModalBtn?.addEventListener('click', fecharModalPedido);
@@ -1191,32 +1053,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderizarItensPedido() {
         pedidoItemsListBody.innerHTML = '';
         let valorTotalPedido = 0;
-
         if (pedidoItems.length === 0) {
             pedidoItemsListBody.innerHTML = '<tr><td class="p-3 text-center text-gray-500" colspan="5">Nenhum item adicionado.</td></tr>';
             pedidoValorTotalSpan.textContent = 'R$ 0,00';
             return;
         }
-
         pedidoItems.forEach((item, index) => {
             const tr = document.createElement('tr');
             tr.className = 'border-b border-gray-700';
-
             const produto = todosOsProdutos.find(p => p.id === item.produtoId);
             const produtoNome = produto?.nome || 'Produto Desconhecido';
             const precoVenda = produto?.precoVenda || 0;
             const subtotal = item.quantidade * precoVenda;
             valorTotalPedido += subtotal;
-
             tr.innerHTML = `
                 <td class="p-3">${produtoNome}</td>
                 <td class="p-3">${item.quantidade}</td>
                 <td class="p-3">${formatarMoeda(precoVenda)}</td>
                 <td class="p-3">${formatarMoeda(subtotal)}</td>
                 <td class="p-3">
-                    <button type="button" data-index="${index}" class="text-red-500 hover:text-red-400 pedido-remove-item-btn">
-                        <i class="fa fa-trash-alt"></i>
-                    </button>
+                    <button type="button" data-index="${index}" class="text-red-500 hover:text-red-400 pedido-remove-item-btn"><i class="fa fa-trash-alt"></i></button>
                 </td>
             `;
             pedidoItemsListBody.appendChild(tr);
@@ -1227,23 +1083,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const produtoId = parseInt(pedidoItemProdutoSelect.value);
         const quantidade = parseInt(pedidoItemQtdInput.value);
         if (!produtoId || !(quantidade > 0)) {
-            alert('Selecione um produto e uma quantidade válida.');
+            mostrarAlert('warning', 'Atenção', 'Selecione um produto e uma quantidade válida.');
             return;
         }
         const produtoSelecionado = todosOsProdutos.find(p => p.id === produtoId);
         if (produtoSelecionado && produtoSelecionado.quantidade < quantidade) {
-            alert(`Estoque insuficiente para "${produtoSelecionado.nome}".\nDisponível: ${produtoSelecionado.quantidade}`);
+            mostrarAlert('warning', 'Estoque Insuficiente', `Estoque insuficiente para "${produtoSelecionado.nome}".\nDisponível: ${produtoSelecionado.quantidade}`);
             return;
         }
         const itemExistente = pedidoItems.find(item => item.produtoId === produtoId);
         if (itemExistente) {
-            alert(`"${produtoSelecionado.nome}" já foi adicionado. Remova-o se quiser alterar a quantidade.`);
+            mostrarAlert('info', 'Item já adicionado', `"${produtoSelecionado.nome}" já foi adicionado. Remova-o se quiser alterar a quantidade.`);
             return;
         }
-        pedidoItems.push({
-            produtoId: produtoId,
-            quantidade: quantidade
-        });
+        pedidoItems.push({ produtoId: produtoId, quantidade: quantidade });
         renderizarItensPedido();
         pedidoItemProdutoSelect.value = '';
         pedidoItemQtdInput.value = '';
@@ -1262,36 +1115,34 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true; btn.textContent = 'Gerando...';
         const clienteIdStr = pedidoClienteSelect.value;
         if (!clienteIdStr || pedidoItems.length === 0) {
-            alert("Selecione um cliente e adicione pelo menos um produto ao pedido.");
+            mostrarAlert('warning', 'Atenção', "Selecione um cliente e adicione pelo menos um produto ao pedido.");
             btn.disabled = false; btn.textContent = 'Gerar Pedido';
             return;
         }
         const pedido = {
             clienteId: parseInt(clienteIdStr),
-            itens: pedidoItems // API espera 'itens'
+            itens: pedidoItems
         };
         try {
             await addPedido(pedido);
-            alert('Pedido gerado com sucesso!');
+            mostrarAlert('success', 'Sucesso', 'Pedido gerado com sucesso!');
             fecharModalPedido();
             await carregarProdutosTabela();
             await carregarVisaoGeralEstoque();
             await carregarPedidosTabela();
         } catch (error) {
-            // (CORRIGIDO) Mostra o erro da API (ex: "Estoque insuficiente")
-            alert(`Falha ao gerar pedido: ${error.response?.data || error.message}`);
+            mostrarAlert('error', 'Erro', `Falha ao gerar pedido: ${error.response?.data || error.message}`);
         } finally {
             btn.disabled = false; btn.textContent = 'Gerar Pedido';
         }
     });
 
-    // --- Modal de NOTA FISCAL (Lançar/Editar) (CORRIGIDO) ---
+    // NOTA FISCAL (Lançar/Editar)
     function abrirModalNotaFiscal(nota = null) {
         itemParaEditar = nota;
         nfManualForm.reset();
         nfXmlForm.reset();
         nfItems = [];
-
         if (nota) {
             nfModalTitle.textContent = `Visualizar Nota Nº ${nota.numeroNota}`;
             nfModalTabs.classList.add('hidden');
@@ -1299,23 +1150,18 @@ document.addEventListener('DOMContentLoaded', () => {
             nfIdInput.value = nota.id;
             nfNumeroInput.value = nota.numeroNota;
             nfFornecedorSelect.value = nota.fornecedorId;
-            if (nota.dataEmissao) {
-                nfDataInput.value = nota.dataEmissao.split('T')[0];
-            }
-
+            if (nota.dataEmissao) nfDataInput.value = nota.dataEmissao.split('T')[0];
             nfItems = nota.itens.map(item => ({
                 produtoId: item.produtoId,
                 produtoNome: item.produto?.nome || 'Produto Carregado',
                 quantidade: item.quantidade,
                 precoCustoUnitario: item.precoCustoUnitario
             }));
-
             nfNumeroInput.disabled = true;
             nfFornecedorSelect.disabled = true;
             nfDataInput.disabled = true;
             nfAddItemBox.classList.add('hidden');
-            nfManualForm.querySelector('button[type="submit"]').classList.add('hidden'); // Esconde o botão salvar
-
+            nfManualForm.querySelector('button[type="submit"]').classList.add('hidden');
         } else {
             nfModalTitle.textContent = 'Lançar Nota Fiscal de Entrada';
             nfModalTabs.classList.remove('hidden');
@@ -1324,7 +1170,7 @@ document.addEventListener('DOMContentLoaded', () => {
             nfFornecedorSelect.disabled = false;
             nfDataInput.disabled = false;
             nfAddItemBox.classList.remove('hidden');
-            nfManualForm.querySelector('button[type="submit"]').classList.remove('hidden'); // Mostra o botão salvar
+            nfManualForm.querySelector('button[type="submit"]').classList.remove('hidden');
         }
         renderizarItensNF();
         notaFiscalModal.classList.remove('hidden');
@@ -1355,33 +1201,25 @@ document.addEventListener('DOMContentLoaded', () => {
     nfTabManualBtn?.addEventListener('click', () => mostrarAbaNF('manual'));
     nfTabXmlBtn?.addEventListener('click', () => mostrarAbaNF('xml'));
 
-    // Lógica da Aba MANUAL
     function renderizarItensNF() {
         if (!nfItemsListBody) return;
         nfItemsListBody.innerHTML = '';
         let valorTotalNota = 0;
-
         if (nfItems.length === 0) {
             nfItemsListBody.innerHTML = '<tr><td class="p-3 text-center text-gray-500" colspan="5">Nenhum item adicionado.</td></tr>';
             nfValorTotalSpan.textContent = 'R$ 0,00';
             return;
         }
-
         nfItems.forEach((item, index) => {
             const custoUnitario = item.precoCustoUnitario || 0;
             const totalItem = (item.quantidade || 0) * custoUnitario;
             valorTotalNota += totalItem;
-
             const tr = document.createElement('tr');
             tr.className = 'border-b border-gray-700';
             const produtoNome = todosOsProdutos.find(p => p.id === item.produtoId)?.nome || item.produtoNome || 'Produto Desconhecido';
-
             const acoesItemHtml = itemParaEditar ? '' : `
-                <button type="button" data-index="${index}" class="text-red-500 hover:text-red-400 nf-remove-item-btn">
-                    <i class="fa fa-trash-alt"></i>
-                </button>
+                <button type="button" data-index="${index}" class="text-red-500 hover:text-red-400 nf-remove-item-btn"><i class="fa fa-trash-alt"></i></button>
             `;
-
             tr.innerHTML = `
                 <td class="p-3">${produtoNome}</td>
                 <td class="p-3">${item.quantidade}</td>
@@ -1397,32 +1235,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const produtoSelect = document.getElementById('nf-item-produto');
         const qtdInput = document.getElementById('nf-item-qtd');
         const custoInput = document.getElementById('nf-item-custo');
-
         const produtoId = parseInt(produtoSelect.value);
         const quantidade = parseInt(qtdInput.value);
         const custoUnitario = parseFloat(custoInput.value);
 
         if (!produtoId || !(quantidade > 0) || !(custoUnitario >= 0)) {
-            alert('Por favor, preencha Produto, Quantidade e Custo Unitário com valores válidos.');
+            mostrarAlert('warning', 'Atenção', 'Por favor, preencha Produto, Quantidade e Custo Unitário com valores válidos.');
             return;
         }
         const produtoNome = produtoSelect.options[produtoSelect.selectedIndex].text;
-
         nfItems.push({
             produtoId: produtoId,
             produtoNome: produtoNome,
             quantidade: quantidade,
-            precoCustoUnitario: custoUnitario // Nome da propriedade da API
+            precoCustoUnitario: custoUnitario
         });
         renderizarItensNF();
-
         produtoSelect.value = '';
         qtdInput.value = '';
         custoInput.value = '';
     });
     nfItemsListBody?.addEventListener('click', (e) => {
         if (itemParaEditar) return;
-
         const removeBtn = e.target.closest('.nf-remove-item-btn');
         if (removeBtn) {
             const indexToRemove = parseInt(removeBtn.dataset.index);
@@ -1432,15 +1266,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     nfManualForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         if (itemParaEditar) {
             fecharModalNotaFiscal();
             return;
         }
-
         const btn = nfManualForm.querySelector('button[type="submit"]');
         btn.disabled = true; btn.textContent = 'Salvando...';
-
         const notaFiscal = {
             fornecedorId: parseInt(nfFornecedorSelect.value),
             numeroNota: nfNumeroInput.value,
@@ -1451,132 +1282,109 @@ document.addEventListener('DOMContentLoaded', () => {
                 precoCustoUnitario: item.precoCustoUnitario
             }))
         };
-
         if (!notaFiscal.fornecedorId || !notaFiscal.numeroNota || !notaFiscal.dataEmissao || notaFiscal.itens.length === 0) {
-            alert('Por favor, preencha os dados da nota e adicione pelo menos um item.');
+            mostrarAlert('warning', 'Atenção', 'Por favor, preencha os dados da nota e adicione pelo menos um item.');
             btn.disabled = false; btn.textContent = 'Salvar Nota Fiscal';
             return;
         }
-
         try {
             await addNotaFiscalManual(notaFiscal);
-            alert('Nota Fiscal de Entrada lançada com sucesso!');
+            mostrarAlert('success', 'Sucesso', 'Nota Fiscal de Entrada lançada com sucesso!');
             fecharModalNotaFiscal();
             await carregarProdutosTabela();
             await carregarVisaoGeralEstoque();
             await carregarNotasFiscaisTabela();
         } catch (error) {
-            alert(`Falha ao salvar nota: ${error.message}`);
+            mostrarAlert('error', 'Erro', `Falha ao salvar nota: ${error.message}`);
         } finally {
             btn.disabled = false; btn.textContent = 'Salvar Nota Fiscal';
         }
     });
     nfXmlForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const fileInput = document.getElementById('nf-xml-file');
         const file = fileInput?.files[0];
-
         if (!file) {
-            alert('Por favor, selecione um arquivo XML.');
+            mostrarAlert('warning', 'Atenção', 'Por favor, selecione um arquivo XML.');
             return;
         }
-
-        // Valida se é realmente um arquivo XML
         if (!file.name.toLowerCase().endsWith('.xml')) {
-            alert('Por favor, selecione um arquivo XML válido.');
+            mostrarAlert('warning', 'Atenção', 'Por favor, selecione um arquivo XML válido.');
             return;
         }
-
         const btn = nfXmlForm.querySelector('button[type="submit"]');
         const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'Importando XML...';
-
+        btn.disabled = true; btn.textContent = 'Importando XML...';
         try {
-            // Cria o FormData para enviar o arquivo
             const formData = new FormData();
-            formData.append('arquivo', file); // Nome deve ser 'arquivo' (igual ao parâmetro do backend)
-
-            // Envia para a API
+            formData.append('file', file);
             const resultado = await addNotaFiscalXml(formData);
-
-            // Monta mensagem de sucesso detalhada
-            let mensagemSucesso = `✅ ${resultado.mensagem}\n\n`;
-            mensagemSucesso += `📄 Número da Nota: ${resultado.numeroNota}\n`;
-            mensagemSucesso += `🏢 Fornecedor: ${resultado.fornecedor}\n`;
-            mensagemSucesso += `💰 Valor Total: ${formatarMoeda(resultado.valorTotal)}\n`;
+            
+            // Formatação HTML para o SweetAlert
+            let mensagemSucesso = `<b>${resultado.mensagem}</b><br><br>`;
+            mensagemSucesso += `📄 Número da Nota: ${resultado.numeroNota}<br>`;
+            mensagemSucesso += `🏢 Fornecedor: ${resultado.fornecedor}<br>`;
+            mensagemSucesso += `💰 Valor Total: ${formatarMoeda(resultado.valorTotal)}<br>`;
             mensagemSucesso += `📦 Total de Itens: ${resultado.totalItens}`;
 
-            alert(mensagemSucesso);
+            Swal.fire({
+                title: 'Importação Concluída',
+                html: mensagemSucesso,
+                icon: 'success',
+                confirmButtonColor: '#7c3aed',
+                background: '#1e1e2d',
+                color: '#fff'
+            });
 
             fecharModalNotaFiscal();
-
-            // Recarrega os dados
             await carregarProdutosTabela();
             await carregarVisaoGeralEstoque();
             await carregarNotasFiscaisTabela();
-
         } catch (error) {
             console.error('Erro ao importar XML:', error);
-
-            // Exibe mensagem de erro mais detalhada
-            let mensagemErro = '❌ Falha ao importar XML:\n\n';
-
+            let mensagemErro = '<b>Falha ao importar XML:</b><br><br>';
             if (error.response?.data) {
-                // Se o backend retornou uma mensagem específica
-                if (typeof error.response.data === 'string') {
-                    mensagemErro += error.response.data;
-                } else if (error.response.data.message) {
-                    mensagemErro += error.response.data.message;
-                } else {
-                    mensagemErro += JSON.stringify(error.response.data);
-                }
+                if (typeof error.response.data === 'string') mensagemErro += error.response.data;
+                else if (error.response.data.message) mensagemErro += error.response.data.message;
+                else mensagemErro += JSON.stringify(error.response.data);
             } else {
-                mensagemErro += error.message || 'Erro desconhecido ao importar XML';
+                mensagemErro += error.message || 'Erro desconhecido';
             }
-
-            alert(mensagemErro);
+            Swal.fire({
+                title: 'Erro na Importação',
+                html: mensagemErro,
+                icon: 'error',
+                confirmButtonColor: '#d33',
+                background: '#1e1e2d',
+                color: '#fff'
+            });
         } finally {
             btn.disabled = false;
             btn.textContent = originalText;
-            fileInput.value = ''; // Limpa o input de arquivo
+            fileInput.value = '';
         }
     });
-    // Preview do arquivo XML selecionado
     const nfXmlFileInput = document.getElementById('nf-xml-file');
-
     nfXmlFileInput?.addEventListener('change', (e) => {
         const file = e.target.files[0];
-        const label = nfXmlFileInput.closest('.mb-4')?.querySelector('label');
-
         if (file) {
             const tamanhoKB = (file.size / 1024).toFixed(2);
             const info = document.createElement('p');
             info.className = 'text-xs text-green-400 mt-2';
             info.id = 'nf-xml-file-info';
             info.innerHTML = `✅ ${file.name} (${tamanhoKB} KB)`;
-
-            // Remove info anterior se existir
             const infoAnterior = document.getElementById('nf-xml-file-info');
-            if (infoAnterior) {
-                infoAnterior.remove();
-            }
-
-            // Adiciona a nova info
+            if (infoAnterior) infoAnterior.remove();
             nfXmlFileInput.parentElement.appendChild(info);
         }
     });
 
-
-
-    // --- 9. LÓGICA DE AÇÃO (Editar/Excluir Genérico) ---
+    // EVENTOS DE CLIQUE EM TABELAS
     productsTableBody?.addEventListener('click', (e) => handleTableClick(e, 'produto'));
     clientesTableBody?.addEventListener('click', (e) => handleTableClick(e, 'cliente'));
     fornecedoresTableBody?.addEventListener('click', (e) => handleTableClick(e, 'fornecedor'));
     usuariosTableBody?.addEventListener('click', (e) => handleTableClick(e, 'usuario'));
     notasFiscaisTableBody?.addEventListener('click', (e) => handleTableClick(e, 'nota-fiscal'));
-    // (NOVO) Listener para clique na linha do pedido
     pedidosTableBody?.addEventListener('click', (e) => {
         const row = e.target.closest('.pedido-row-clickable');
         if (row) {
@@ -1585,22 +1393,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
     async function handleTableClick(e, tipo, idOverride = null) {
         const editBtn = e.target.closest('.edit-btn');
         const deleteBtn = e.target.closest('.delete-btn');
-        // (ATUALIZADO) Pega o ID da linha (clique) ou do botão
         const id = idOverride || editBtn?.dataset.id || deleteBtn?.dataset.id;
-
         if (!id) return;
 
-        // (NOVO) Lógica para abrir modal de detalhe do pedido
         if (tipo === 'pedido' && !editBtn && !deleteBtn) {
             try {
                 const pedido = await getPedido(id);
                 abrirModalDetalhePedido(pedido);
             } catch (error) {
-                alert(`Não foi possível carregar os detalhes do pedido: ${error.message}`);
+                mostrarAlert('error', 'Erro', `Não foi possível carregar os detalhes do pedido: ${error.message}`);
             }
             return;
         }
@@ -1624,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     abrirModalNotaFiscal(nota);
                 }
             } catch (error) {
-                alert(`Não foi possível carregar o item para edição: ${error.message}`);
+                mostrarAlert('error', 'Erro', `Não foi possível carregar o item para edição: ${error.message}`);
             }
         }
 
@@ -1638,9 +1442,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Modal de EXCLUSÃO (Genérico - CORRIGIDO para Soft Delete) ---
+    // EXCLUSÃO
     function abrirModalExclusao() {
-        // (CORRIGIDO) Muda a mensagem para soft delete
         if (itemParaExcluir.tipo === 'cliente' || itemParaExcluir.tipo === 'usuario') {
             deleteConfirmMessage.textContent = `Você tem certeza que deseja INATIVAR "${itemParaExcluir.nome}"? O histórico será mantido.`;
             confirmDeleteBtn.textContent = 'Inativar';
@@ -1664,21 +1467,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirmDeleteBtn?.addEventListener('click', async () => {
         if (!itemParaExcluir.id || !itemParaExcluir.tipo) return;
-
         const originalText = confirmDeleteBtn.textContent;
         confirmDeleteBtn.disabled = true;
         confirmDeleteBtn.textContent = 'Processando...';
-
         try {
             let alertMessage = 'Item processado com sucesso!';
-
             if (itemParaExcluir.tipo === 'produto') {
                 await deleteProduto(itemParaExcluir.id);
                 await carregarProdutosTabela();
                 await carregarVisaoGeralEstoque();
                 alertMessage = 'Produto excluído com sucesso!';
             } else if (itemParaExcluir.tipo === 'cliente') {
-                await deleteCliente(itemParaExcluir.id); // Soft delete
+                await deleteCliente(itemParaExcluir.id);
                 await carregarClientesTabela();
                 alertMessage = 'Cliente inativado com sucesso!';
             } else if (itemParaExcluir.tipo === 'fornecedor') {
@@ -1686,7 +1486,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await carregarFornecedoresTabela();
                 alertMessage = 'Fornecedor excluído com sucesso!';
             } else if (itemParaExcluir.tipo === 'usuario') {
-                await deleteUsuario(itemParaExcluir.id); // Soft delete
+                await deleteUsuario(itemParaExcluir.id);
                 await carregarUsuariosTabela();
                 alertMessage = 'Usuário inativado com sucesso!';
             } else if (itemParaExcluir.tipo === 'nota-fiscal') {
@@ -1694,15 +1494,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 await carregarNotasFiscaisTabela();
                 alertMessage = 'Nota Fiscal excluída com sucesso!';
             }
-            alert(alertMessage);
+            // Substituído o alert padrão por SweetAlert
+            mostrarAlert('success', 'Sucesso', alertMessage);
             fecharModalExclusao();
         } catch (error) {
-            alert(`Falha ao processar: ${error.response?.data || error.message}`);
+            mostrarAlert('error', 'Erro', `Falha ao processar: ${error.response?.data || error.message}`);
         } finally {
             confirmDeleteBtn.disabled = false;
             confirmDeleteBtn.textContent = originalText;
         }
     });
+
+    // DETALHE PEDIDO
     const pedidoDetalheModal = document.getElementById('pedido-detalhe-modal');
     const closePedidoDetalheBtn = document.getElementById('close-pedido-detalhe-modal-btn');
     const pedidoDetalheIdInput = document.getElementById('pedido-detalhe-id');
@@ -1714,39 +1517,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const pedidoDetalheSalvarStatusBtn = document.getElementById('pedido-detalhe-salvar-status-btn');
 
     function abrirModalDetalhePedido(pedido) {
-        if (!pedidoDetalheModal) {
-            console.error("Modal de detalhe do pedido não encontrado!");
-            return;
-        }
-
-        // Preenche os dados básicos
+        if (!pedidoDetalheModal) return;
         pedidoDetalheIdInput.value = pedido.id;
         pedidoDetalheCliente.textContent = pedido.cliente?.nome || pedido.nomeCliente || 'N/A';
         pedidoDetalheData.textContent = formatarData(pedido.dataPedido);
         pedidoDetalheStatusSelect.value = pedido.status || 'Pendente';
-
-        // Renderiza os itens
         pedidoDetalheItensTbody.innerHTML = '';
-
         const itens = pedido.pedidoItens || [];
-
         if (itens && itens.length > 0) {
             let valorTotalCalculado = 0;
-
             itens.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-gray-700';
-
-                // Pega o nome do produto
                 const nomeProduto = item.produto?.nome || item.nomeProduto || 'Produto Desconhecido';
-
-                // CORRIGIDO: Pega o preço do produto
                 const precoUnit = item.precoUnitario || item.produto?.precoVenda || 0;
                 const quantidade = item.quantidade || 0;
                 const subtotal = quantidade * precoUnit;
-
                 valorTotalCalculado += subtotal;
-
                 tr.innerHTML = `
                 <td class="p-3">${nomeProduto}</td>
                 <td class="p-3">${quantidade}</td>
@@ -1755,89 +1542,60 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
                 pedidoDetalheItensTbody.appendChild(tr);
             });
-
-            // Atualiza o valor total calculado
             pedidoDetalheValor.textContent = formatarMoeda(valorTotalCalculado);
-
         } else {
             pedidoDetalheItensTbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-500">Nenhum item encontrado.</td></tr>';
             pedidoDetalheValor.textContent = formatarMoeda(0);
         }
-
-        // Abre o modal
         pedidoDetalheModal.classList.remove('hidden');
         pedidoDetalheModal.classList.add('flex');
     }
     function fecharModalDetalhePedido() {
-        if (pedidoDetalheModal) {
-            pedidoDetalheModal.classList.add('hidden');
-            pedidoDetalheModal.classList.remove('flex');
-        }
+        pedidoDetalheModal?.classList.add('hidden');
+        pedidoDetalheModal?.classList.remove('flex');
     }
-
     closePedidoDetalheBtn?.addEventListener('click', fecharModalDetalhePedido);
 
-    // Salvar Status do Pedido
     pedidoDetalheSalvarStatusBtn?.addEventListener('click', async () => {
         const pedidoId = pedidoDetalheIdInput.value;
         const novoStatus = pedidoDetalheStatusSelect.value;
-
         if (!pedidoId || !novoStatus) {
-            alert('Erro ao obter dados do pedido.');
+            mostrarAlert('error', 'Erro', 'Erro ao obter dados do pedido.');
             return;
         }
-
         const btn = pedidoDetalheSalvarStatusBtn;
         const originalText = btn.textContent;
         btn.disabled = true;
         btn.textContent = 'Salvando...';
-
         try {
             await updatePedidoStatus(pedidoId, novoStatus);
-            alert('Status do pedido atualizado com sucesso!');
+            mostrarAlert('success', 'Sucesso', 'Status do pedido atualizado com sucesso!');
             fecharModalDetalhePedido();
-            await carregarPedidosTabela(); // Recarrega a tabela
+            await carregarPedidosTabela();
         } catch (error) {
-            alert(`Falha ao atualizar status: ${error.message}`);
+            mostrarAlert('error', 'Erro', `Falha ao atualizar status: ${error.message}`);
         } finally {
             btn.disabled = false;
             btn.textContent = originalText;
         }
     });
 
-
-    // --- (NOVO) FILTROS DE STATUS DOS PEDIDOS ---
-
+    // FILTROS PEDIDOS
     const pedidosFilterButtons = document.getElementById('pedidos-filter-buttons');
-
     pedidosFilterButtons?.addEventListener('click', async (e) => {
         const btn = e.target.closest('.pedido-filtro-btn');
         if (!btn) return;
-
-        // Remove a classe 'active' de todos os botões
         const allFilterBtns = pedidosFilterButtons.querySelectorAll('.pedido-filtro-btn');
         allFilterBtns.forEach(b => b.classList.remove('active'));
-
-        // Adiciona 'active' ao botão clicado
         btn.classList.add('active');
-
-        // Pega o status do botão
         const status = btn.dataset.status;
-
-        // Carrega os pedidos com o filtro (null = todos)
-        if (status === 'todos') {
-            await carregarPedidosTabela(null);
-        } else {
-            await carregarPedidosTabela(status);
-        }
+        if (status === 'todos') await carregarPedidosTabela(null);
+        else await carregarPedidosTabela(status);
     });
 
-    // --- 10. INICIALIZAÇÃO (CORRIGIDO) ---
+    // --- 10. INICIALIZAÇÃO ---
     mostrarTela(inicioContent, 'Início');
     setAtivo(navInicioBtn);
-
-    // Carrega todos os dados necessários em segundo plano
-    // (A verificação de 'userRole' foi REMOVIDA)
     carregarVisaoGeralEstoque();
     carregarProdutosTabela();
     carregarPedidosTabela();

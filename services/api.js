@@ -221,7 +221,7 @@ export async function getTop5Clientes() {
   return response.data;
 }
 
-export async function getItensParados() {
-  const response = await api.get('/Relatorios/estoque/itensparados');
+export async function getItensParados(dias = 10) {
+  const response = await api.get(`/Relatorios/estoque/itensparados?dias=${dias}`);
   return response.data;
 }
