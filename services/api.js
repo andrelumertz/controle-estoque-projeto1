@@ -1,6 +1,6 @@
 // services/api.js (COMPLETO E CORRIGIDO)
 // --- 1. CONFIGURAÇÃO PRINCIPAL ---
-const API_URL = 'https://localhost:7202/api';
+const API_URL = process.env.VITE_API_URL || 'https://estoque-api-t1b1.onrender.com/api';
 
 // --- 2. CRIAÇÃO DA INSTÂNCIA DO AXIOS ---
 const api = axios.create({

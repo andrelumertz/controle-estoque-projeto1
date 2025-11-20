@@ -1,0 +1,89 @@
+# 📦 Controle Fácil: Sistema de Gestão de Estoque
+
+## ✨ Visão Geral do Projeto
+
+O **Controle Fácil** é um sistema completo e moderno de gestão de estoque e vendas desenvolvido para simplificar o controle de produtos, clientes, fornecedores e pedidos. A interface é intuitiva, baseada em um layout de painel (dashboard), e oferece visões gráficas e relatórios para auxiliar na tomada de decisões.
+
+### Principais Funcionalidades
+
+* **Autenticação Segura:** Login baseado em token JWT e interceptores configurados para controle de sessão.
+* **Gestão Completa de Cadastros:** CRUD (Criação, Leitura, Atualização e Exclusão/Inativação) de **Produtos**, **Clientes**, **Fornecedores** e **Usuários**.
+* **Pedidos de Venda:** Geração de pedidos com verificação de estoque em tempo real.
+* **Notas Fiscais de Entrada:** Lançamento de notas fiscais manualmente ou via **importação de arquivo XML**, atualizando o estoque automaticamente.
+* **Relatórios e Dashboards:** Visão geral de estoque, gráficos de vendas por mês, ranking de Top 5 Produtos/Clientes e relatório de Itens Parados.
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+Este projeto é construído como um **Front-end monolítico** que se comunica com um **Backend em .NET** (API).
+
+| Categoria | Tecnologia | Uso |
+| :--- | :--- | :--- |
+| **Linguagem Principal** | JavaScript (ES6+) | Toda a lógica de front-end e manipulação do DOM. |
+| **Estilização** | **Tailwind CSS** | Framework utility-first para design rápido e responsivo. |
+| **Requisições HTTP** | **Axios** | Cliente HTTP moderno para comunicação assíncrona com a API. |
+| **Gráficos** | **Chart.js** | Biblioteca simples e flexível para renderização dos relatórios gráficos. |
+| **API** | C# / ASP.NET Core | **(Dependência)** O projeto Front-end espera uma API rodando em `https://localhost:7202/api`. |
+
+---
+
+## 🚀 Como Rodar o Projeto
+
+### Pré-requisitos
+
+1.  O **Backend/API** do sistema de estoque deve estar rodando e acessível em `https://localhost:7202/api`.
+2.  Node.js e npm (para instalar dependências e rodar o Tailwind).
+3.  Um servidor de desenvolvimento local (Live Server ou similar) para servir os arquivos HTML e JS.
+
+### Passos para Execução
+
+1.  **Clone o repositório:**
+    ```bash
+    git clone [https://github.com/andrelumertz/controle-estoque-projeto1.git](https://github.com/andrelumertz/controle-estoque-projeto1.git)
+    cd controle-estoque-projeto1
+    ```
+
+2.  **Instale as dependências (para o Tailwind):**
+    ```bash
+    npm install
+    ```
+
+3.  **Inicie o monitoramento do Tailwind (Geração do CSS):**
+    Este comando deve ser mantido rodando em um terminal separado durante o desenvolvimento.
+    ```bash
+    npm run watch-css
+    ```
+
+4.  **Acesse a Aplicação:**
+    Abra o arquivo `login.html` usando um servidor local (ex: Live Server) e prossiga para a autenticação.
+
+---
+
+## 🏗️ Estrutura do Código
+
+A lógica do Front-end está organizada em módulos ES6 para facilitar a manutenção.
+
+| Arquivo/Pasta | Propósito | Relação com a Lógica |
+| :--- | :--- | :--- |
+| **`dashboard.html`** | Estrutura principal da UI (SPA). | Define todos os elementos com IDs que o `script.js` usa para manipular a interface, trocar telas e exibir modais. |
+| **`script.js`** | **Controlador Principal** | Lógica de eventos, renderização de tabelas, gráficos, modais e gerenciamento de estado da UI. |
+| **`services/api.js`** | **Camada de Comunicação** | Configuração do Axios, interceptores de token e *todas* as funções de chamada à API (CRUD e Relatórios). |
+| **`login.js`** | Lógica de Login | Gerencia o formulário de `login.html` e usa a função `autenticar` do `api.js`. |
+| **`tailwind.config.js`** | Configuração de Estilo | Define o escaneamento de arquivos (`./*.{html,js}`) para que o Tailwind gere o `output.css` otimizado. |
+
+---
+
+## 🤝 Contribuição e Licença
+
+Sinta-se à vontade para propor melhorias. Para contribuições, por favor, abra um **Pull Request**.
+
+**Licença:** 
+MIT License
+Copyright (c) 2025 Pedro Sbardellotto
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
